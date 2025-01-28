@@ -70,7 +70,6 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: NuGet Restore Solution Packages
-      if: steps.nuget-cache.outputs.cache-hit != 'true'
       run: nuget restore "${{ env.ROOT_SOLUTION_FILE }}"
   
     - name: Build Solution Projects
