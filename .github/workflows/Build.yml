@@ -1,0 +1,102 @@
+# This workflow will build the Framework "main" Repository
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      ROOT_SOLUTION_FILE: ${{ github.workspace }}/src/WebApplications.sln
+      WEBSTORE_CSPROJECT_FILE: ${{ github.workspace }}/src/WebStore/WebStore.csproj
+      MSBUILD_LOGGER_FILE: ${{ github.workspace }}/temp/Reupen.MSBuild.GitHubLogger.dll
+      ARTIFACTS_STAGING_DIR: ${{ github.workspace }}/artifacts
+      
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+
+    - name: Install GitVersion
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      uses: gittools/actions/gitversion/setup@v3
+      with:
+        versionSpec: '6.0.x'
+        
+    - name: Determine Build Version
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      uses: gittools/actions/gitversion/execute@v3
+      with:
+        updateAssemblyInfo: true
+
+    - name: Setup Node.js (18.x)
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+      
+    - name: Setup MSBuild (Latest)
+      uses: microsoft/setup-msbuild@v2
+      with:
+        vs-version: latest
+
+    - name: Setup MSBuild Logger
+      run: |
+        Invoke-WebRequest -Uri https://github.com/reupen/msbuild-github-logger/releases/download/v1.0.1/Reupen.MSBuild.GitHubLogger.dll -OutFile "$MSBUILD_LOGGER_FILE"
+        
+    - name: Setup NuGet.exe (6.x)
+      uses: NuGet/setup-nuget@v2
+      with:
+        nuget-version: 6.x
+
+    - name: Setup NuGet PKG Cache
+      uses: actions/cache@v4
+      id: nuget-cache
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**\packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: NuGet Restore Solution Packages
+      if: steps.nuget-cache.outputs.cache-hit != 'true'
+      run: nuget restore $ROOT_SOLUTION_FILE
+  
+    - name: Build Solution Projects
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      run: |
+        msbuild "$ROOT_SOLUTION_FILE" /m /nologo /nr:false /logger:"$MSBUILD_LOGGER_FILE" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0"
+
+    - name: Create Publish Artifacts
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        msbuild "$ROOT_SOLUTION_FILE" /m /nologo /nr:false /logger:"$MSBUILD_LOGGER_FILE" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0" /p:DeployOnBuild=true /p:PublishProfile=ZipDeployArtifact /p:ExcludeGeneratedDebugSymbol=true
+
+    - name: Pack Publish Artifacts
+      if: startsWith(github.ref, 'refs/tags/v')
+      working-directory: ./artifacts
+      shell: cmd
+      run: |
+        for /d %%X in (*) do "7z" a "%%X.zip" "%%X\"
+
+    - name: Upload Publish Artifacts
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v4
+      with:
+        name: PublishArtifacts
+        path: artifacts/*.zip
+        if-no-files-found: error
+        compression-level: 0

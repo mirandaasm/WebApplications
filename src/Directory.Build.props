@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+   <ItemGroup>
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-ph3v-2hq5-5qfq" />
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-9pq7-rcxv-47vq" />
+      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5rv-hpxg-8x49" />
+   </ItemGroup>
+</Project>
