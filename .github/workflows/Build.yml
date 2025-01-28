@@ -55,7 +55,7 @@ jobs:
 
     - name: Setup MSBuild Logger
       run: |
-        Invoke-WebRequest -Uri https://github.com/reupen/msbuild-github-logger/releases/download/v1.0.1/Reupen.MSBuild.GitHubLogger.dll -OutFile "$MSBUILD_LOGGER_FILE"
+        Invoke-WebRequest -Uri https://github.com/reupen/msbuild-github-logger/releases/download/v1.0.1/Reupen.MSBuild.GitHubLogger.dll -OutFile "${{ env.MSBUILD_LOGGER_FILE }}"
         
     - name: Setup NuGet.exe (6.x)
       uses: NuGet/setup-nuget@v2
@@ -73,17 +73,17 @@ jobs:
 
     - name: NuGet Restore Solution Packages
       if: steps.nuget-cache.outputs.cache-hit != 'true'
-      run: nuget restore $ROOT_SOLUTION_FILE
+      run: nuget restore "${{ env.ROOT_SOLUTION_FILE }}"
   
     - name: Build Solution Projects
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       run: |
-        msbuild "$ROOT_SOLUTION_FILE" /m /nologo /nr:false /logger:"$MSBUILD_LOGGER_FILE" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0"
+        msbuild "${{ env.ROOT_SOLUTION_FILE }}" /m /nologo /nr:false /logger:"${{ env.MSBUILD_LOGGER_FILE }}" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0"
 
     - name: Create Publish Artifacts
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
-        msbuild "$ROOT_SOLUTION_FILE" /m /nologo /nr:false /logger:"$MSBUILD_LOGGER_FILE" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0" /p:DeployOnBuild=true /p:PublishProfile=ZipDeployArtifact /p:ExcludeGeneratedDebugSymbol=true
+        msbuild "${{ env.ROOT_SOLUTION_FILE }}" /m /nologo /nr:false /logger:"${{ env.MSBUILD_LOGGER_FILE }}" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0" /p:DeployOnBuild=true /p:PublishProfile=ZipDeployArtifact /p:ExcludeGeneratedDebugSymbol=true
 
     - name: Pack Publish Artifacts
       if: startsWith(github.ref, 'refs/tags/v')
