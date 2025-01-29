@@ -6,11 +6,7 @@ name: Deploy To Azure App Service
 on:
   repository_dispatch:
     types: [publish-artifacts]
-    inputs:
-      environment:
-        required: false
-        type: string
-        default: 'B2B Dev'
+    run-name: 'Deploying ${{ github.event.client_payload.version }} into Azure App Service (B2B Dev)'
 
   workflow_dispatch:
     inputs:
@@ -29,8 +25,8 @@ jobs:
       ARTIFACTS_STAGING_DIR: ${{ github.workspace }}/artifacts
     
     environment:
-      name: ${{ github.event.inputs.environment }}
-      url: https://github.com
+      name: ${{ github.event.inputs.environment || 'B2B Dev' }}
+      url: https://b2b.samples.fastchannel.com
 
 
     steps:
