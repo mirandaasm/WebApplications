@@ -4,9 +4,8 @@
 name: Deploy To Azure App Service
 
 on:
-  workflow_run:
-    workflows: [Build And Pack Latest Version]
-    types: [completed]
+  repository_dispatch:
+    types: [publish-artifacts]
     inputs:
       environment:
         required: false
@@ -16,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy'
+        description: 'Environment to Deploy'
         type: environment
         default: 'B2B Dev'
         required: true
