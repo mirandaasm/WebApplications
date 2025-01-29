@@ -103,4 +103,4 @@ jobs:
       uses: peter-evans/repository-dispatch@v3
       with:
         event-type: publish-artifacts
-        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "artifacts-name": "PublishArtifacts"}'
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "version": "${{ env.GitVersion_MajorMinorPatch }}", "artifacts-name": "PublishArtifacts"}'

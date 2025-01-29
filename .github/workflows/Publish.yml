@@ -6,7 +6,7 @@ name: Deploy To Azure App Service
 on:
   repository_dispatch:
     types: [publish-artifacts]
-    run-name: 'Deploying ${{ github.event.client_payload.version }} into Azure App Service (B2B Dev)'
+    run-name: 'Deploying Version ${{ github.event.client_payload.version }} into Azure App Service: B2B Dev'
 
   workflow_dispatch:
     inputs:
