@@ -1,0 +1,63 @@
+# This workflow will publish/deploy the latest build to Azure App Service
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Deploy To Azure App Service
+
+on:
+  workflow_run:
+    workflows: [Build And Pack Latest Version]
+    types: [completed]
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'B2B Dev'
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        type: environment
+        default: 'B2B Dev'
+        required: true
+
+jobs:
+  deployment:
+
+    runs-on: windows-latest
+
+    env:
+      ARTIFACTS_STAGING_DIR: ${{ github.workspace }}/artifacts
+    
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: https://github.com
+
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Latest Build
+      uses: dawidd6/action-download-artifact@v8
+      with:
+        github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
+        workflow: Build.yml
+        workflow_conclusion: success
+        name: PublishArtifacts
+        path: ./artifacts
+    
+    - name: Debug Build Artifacts
+      working-directory: ./artifacts
+      run: |
+        Get-ChildItem -Path . -Recurse
+
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy To Azure App Service
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ vars.AZURE_APPSERVICE_NAME }} # Replace with your app name
+        package: ${{ github.workspace }}/artifacts/WebStore.zip
