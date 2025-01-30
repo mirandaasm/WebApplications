@@ -76,7 +76,7 @@ jobs:
       run: |
         msbuild "${{ env.ROOT_SOLUTION_FILE }}" /m /nologo /nr:false /logger:"$Env:Temp\Reupen.MSBuild.GitHubLogger.dll" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0" /p:DeployOnBuild=true /p:PublishProfile=ZipDeployArtifact /p:ExcludeGeneratedDebugSymbol=true
 
-    - name: '[TEMP] Duplicate Deploy Dirs'
+    - name: '[DEBUG] Duplicate Deployment Folders'
       working-directory: ./artifacts
       run: |-
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-manager-zipdeploy" -Recurse
@@ -84,13 +84,13 @@ jobs:
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-feeds-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-accounts-zipdeploy" -Recurse
 
-    - name: Create Deploy Artifacts
+    - name: Create Deployment Artifacts
       working-directory: ./artifacts
       shell: cmd
       run: |
         for /d %%X in (*) do "7z" a "%%X.zip" ".\%%X\*"
 
-    - name: Upload Deploy Artifacts
+    - name: Upload Deployment Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ZipDeployPackages
@@ -115,10 +115,10 @@ jobs:
         make_latest: true
         generate_release_notes: true
 
-    - name: Trigger Deploy Workflow
+    - name: New Deployment Artifacts Available
       uses: peter-evans/repository-dispatch@v3
       with:
-        event-type: deploy-artifacts
+        event-type: new-deploy-artifacts-available
         client-payload: |-
           {
             "github": {

@@ -1,7 +1,7 @@
 # This is a reusable workflow, used to define constant values related to the available environments
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Environment Details
+name: Get Environment Details
 
 on:
   workflow_call:
@@ -18,6 +18,9 @@ on:
       url:
         description: 'Environment URL'
         value: ${{ jobs.define-environment-details.outputs.environment-url }}
+      appservice-suffix:
+        description: 'AppService Suffix'
+        value: ${{ jobs.define-environment-details.outputs.appservice-suffix }}
 
 jobs:
   define-environment-details:
@@ -25,26 +28,81 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment-url: ${{ steps.set-environment-url.outputs.environment-url }}
+      appservice-suffix: ${{ steps.set-appservice-suffix.outputs.appservice-suffix }}
+
     steps:
       - name: Set Environment URL
         id: set-environment-url
         run: |
           env_name="${{ inputs.environment-name }}"
           (shopt -s nocasematch;
+
             if [[ "${env_name}" == "B2B Dev" ]]; then
+
               echo "environment-url=https://b2b.samples.fastchannel.com" >> $GITHUB_OUTPUT
+
             elif [[ "${env_name}" == "Bead Shop" ]]; then
+
               echo "environment-url=https://www.beadshop.com.br" >> $GITHUB_OUTPUT
+
             elif [[ "${env_name}" == "LDI Cristais" ]]; then
+
               echo "environment-url=https://www.ldicristais.com.br" >> $GITHUB_OUTPUT
+
             elif [[ "${env_name}" == "Iconic Lubrificantes" ]]; then
+
               echo "environment-url=https://www.lubesipirangaetexaco.com.br" >> $GITHUB_OUTPUT
+
             elif [[ "${env_name}" == "SAR Medicamentos" ]]; then
+
               echo "environment-url=https://www.sar.com.br" >> $GITHUB_OUTPUT
+
             elif [[ "${env_name}" == "SAR Medicamentos (DEV)" ]]; then
+
               echo "environment-url=https://sar.samples.fastchannel.com" >> $GITHUB_OUTPUT
+
             else
+
               echo "::error title=Unkown Environment::Unable to find a valid environment named '${env_name}'"
+
+              exit 1
+            fi
+          )
+
+      - name: Set AppService Suffix
+        id: set-appservice-suffix
+        run: |
+          env_name="${{ inputs.environment-name }}"
+          (shopt -s nocasematch;
+
+            if [[ "${env_name}" == "B2B Dev" ]]; then
+
+              echo "appservice-suffix=b2bdev" >> $GITHUB_OUTPUT
+
+            elif [[ "${env_name}" == "Bead Shop" ]]; then
+
+              echo "appservice-suffix=beadshop" >> $GITHUB_OUTPUT
+
+            elif [[ "${env_name}" == "LDI Cristais" ]]; then
+
+              echo "appservice-suffix=ldicristais" >> $GITHUB_OUTPUT
+
+            elif [[ "${env_name}" == "Iconic Lubrificantes" ]]; then
+
+              echo "appservice-suffix=iconic" >> $GITHUB_OUTPUT
+
+            elif [[ "${env_name}" == "SAR Medicamentos" ]]; then
+
+              echo "appservice-suffix=sar" >> $GITHUB_OUTPUT
+
+            elif [[ "${env_name}" == "SAR Medicamentos (DEV)" ]]; then
+
+              echo "appservice-suffix=sardev" >> $GITHUB_OUTPUT
+
+            else
+
+              echo "::error title=Unkown Environment::Unable to find a valid environment named '${env_name}'"
+
               exit 1
             fi
           )

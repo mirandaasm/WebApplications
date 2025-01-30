@@ -10,7 +10,7 @@ run-name: >-
 
 on:
   repository_dispatch:
-    types: [deploy-artifacts]
+    types: [new-deploy-artifacts-available]
 
   workflow_dispatch:
     inputs:
@@ -50,6 +50,13 @@ on:
         type: boolean
         default: false
 
+env:
+  DEPLOYMENTS_WEBSTORE: false
+  DEPLOYMENTS_WEBPORTAL: false
+  DEPLOYMENTS_WEBSERVICES: false
+  DEPLOYMENTS_WEBFEEDS: false
+  DEPLOYMENTS_WEBACCOUNTS: false
+
 jobs:
   environment-details:
     uses: ./.github/workflows/Environments.yml
@@ -59,10 +66,10 @@ jobs:
 
   resolve-deploy-artifacts:
     runs-on: windows-latest
-    name: Resolve Deploy Artifacts
+    name: Resolve Deployment Artifacts
     steps:
 
-    - name: Download All Build Artifacts
+    - name: Download All Deployment Artifacts
       uses: dawidd6/action-download-artifact@v8
       with:
         github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
@@ -71,67 +78,83 @@ jobs:
         name: ${{ github.event.inputs.artifacts-name || github.event.client_payload.artifacts-name }}
         path: ./artifacts
     
-    - name: Debug All Deploy Artifacts
+    - name: '[DEBUG] List All Deployment Artifacts'
       working-directory: ./artifacts
       run: |
         Get-ChildItem -Path . -Recurse
 
-    - name: Upload WebStore Artifact
-      if: ${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}
+    - name: Define Artifacts to Deploy
+      run: |
+        "DEPLOYMENTS_WEBSTORE=${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
+        "DEPLOYMENTS_WEBPORTAL=${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
+        "DEPLOYMENTS_WEBSERVICES=${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
+        "DEPLOYMENTS_WEBFEEDS=${{ inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
+        "DEPLOYMENTS_WEBACCOUNTS=${{ inputs.deploy-to-webaccounts }}" >> $env:GITHUB_ENV
+
+    - name: '[DEBUG] List Enabled Deployments'
+      run: |
+        $env:DEPLOYMENTS_WEBSTORE
+        $env:DEPLOYMENTS_WEBPORTAL
+        $env:DEPLOYMENTS_WEBSERVICES
+        $env:DEPLOYMENTS_WEBFEEDS
+        $env:DEPLOYMENTS_WEBACCOUNTS
+  
+    - name: Upload WebStore Deployment Artifact
+      if: ${{ env.DEPLOYMENTS_WEBSTORE }}
       uses: actions/upload-artifact@v4
       with:        
-        name: webstore
+        name: webstore # Artifact name must match one of the 'appservice' Matrix names on the next job
         path: artifacts/fastchannel-webstore-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebPortal Artifact
-      if: ${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}
+    - name: Upload WebPortal Deployment Artifact
+      if: ${{ env.DEPLOYMENTS_WEBPORTAL }}
       uses: actions/upload-artifact@v4
       with:        
-        name: manager
+        name: manager # Artifact name must match one of the 'appservice' Matrix names on the next job
         path: artifacts/fastchannel-manager-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebServices Artifact
-      if: ${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}
+    - name: Upload WebServices Deployment Artifact
+      if: ${{ env.DEPLOYMENTS_WEBSERVICES }}
       uses: actions/upload-artifact@v4
       with:        
-        name: services
+        name: services # Artifact name must match one of the 'appservice' Matrix names on the next job
         path: artifacts/fastchannel-services-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebFeeds Artifact
-      if: ${{ inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch' }}
+    - name: Upload WebFeeds Deployment Artifact
+      if: ${{ env.DEPLOYMENTS_WEBFEEDS }}
       uses: actions/upload-artifact@v4
       with:        
-        name: feeds
+        name: feeds # Artifact name must match one of the 'appservice' Matrix names on the next job
         path: artifacts/fastchannel-feeds-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebAccounts Artifact
-      if: ${{ inputs.deploy-to-webaccounts }}
+    - name: Upload WebAccounts Deployment Artifact
+      if: ${{ env.DEPLOYMENTS_WEBACCOUNTS }}
       uses: actions/upload-artifact@v4
       with:        
-        name: accounts
+        name: accounts # Artifact name must match one of the 'appservice' Matrix names on the next job
         path: artifacts/fastchannel-accounts-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
   appservice-deployment:
     needs: [environment-details, resolve-deploy-artifacts]
-    name: Deploy [${{ matrix.appservice }}] for [${{ needs.environment-details.outputs.name }}]
+    name: Deploy ${{ env.APPSERVICE_NAME }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     if: >-
-      ${{ (matrix.appservice == 'webstore' && (inputs.deploy-to-webstore || github.event_name == 'repository_dispatch')) ||
-          (matrix.appservice == 'manager' && (inputs.deploy-to-webportal || github.event_name == 'repository_dispatch')) || 
-          (matrix.appservice == 'services' && (inputs.deploy-to-webservices || github.event_name == 'repository_dispatch')) ||
-          (matrix.appservice == 'feeds' && (inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch')) ||
-          (matrix.appservice == 'accounts' && inputs.deploy-to-webaccounts)) }}
+      ${{ (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE) ||
+          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL) || 
+          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES) ||
+          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS) ||
+          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS) }}
     strategy:
       fail-fast: false
       matrix:
@@ -143,11 +166,11 @@ jobs:
       url: ${{ needs.environment-details.outputs.url }}
 
     env:
-      APPSERVICE_NAME: ${{ format('fastchannel-{0}-{1}', matrix.appservice, vars.ENVIRONMENT_ID) }}
+      APPSERVICE_NAME: ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
       APPSERVICE_PACKAGE: ${{ github.workspace }}/artifacts/fastchannel-${{ matrix.appservice }}-zipdeploy.zip
 
     steps:
-    - name: Download [${{ matrix.appservice }}] Artifact
+    - name: 'Download [${{ matrix.appservice }}] Artifact'
       uses: actions/download-artifact@v4
       with:
         merge-multiple: true
@@ -164,3 +187,20 @@ jobs:
       with:
         app-name: ${{ env.APPSERVICE_NAME }}
         package: ${{ env.APPSERVICE_PACKAGE }}
+
+  cleanup-resources:
+    needs: [appservice-deployment]
+    name: Cleanup Resources
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    if: always()
+    strategy:
+      fail-fast: false
+      matrix:
+        appservice: [webstore, manager, services, feeds, accounts]
+        os: [windows-latest]
+    steps:
+    - name: Cleanup Deployment Artifacts
+      uses: geekyeggo/delete-artifact@v5
+      with:
+        name: ${{ matrix.appservice }}
