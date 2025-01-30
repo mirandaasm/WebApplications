@@ -90,7 +90,7 @@ jobs:
       id: set-deployment-matrix
       if: ${{ env.SKIP_ALL != 'true' }}
       run: |
-        matrix_file="${{ runer.temp }}/appservice-matrix.txt"
+        matrix_file="${{ runner.temp }}/appservice-matrix.txt"
         touch ${matrix_file}
         (shopt -s nocasematch;
           if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
