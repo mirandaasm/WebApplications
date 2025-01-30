@@ -30,17 +30,14 @@ on:
         description: 'Deploy to WebStore'
         type: boolean
         default: true
-        required: true
       deploy-to-webportal:
         description: 'Deploy to WebPortal'
         type: boolean
         default: true
-        required: true
       deploy-to-webservices:
         description: 'Deploy to WebServices'
         type: boolean
         default: true
-        required: true
       deploy-to-webfeeds:
         description: 'Deploy to WebFeeds'
         type: boolean
@@ -50,26 +47,71 @@ on:
         type: boolean
         default: false
 
-env:
-  DEPLOYMENTS_WEBSTORE: false
-  DEPLOYMENTS_WEBPORTAL: false
-  DEPLOYMENTS_WEBSERVICES: false
-  DEPLOYMENTS_WEBFEEDS: false
-  DEPLOYMENTS_WEBACCOUNTS: false
-
 jobs:
   environment-details:
     uses: ./.github/workflows/Environments.yml
-    name: Set Environment Details
+    name: Environment Details
     with:
       environment-name: ${{ github.event.inputs.environment || github.event.client_payload.environment }}
 
-  resolve-deploy-artifacts:
-    runs-on: windows-latest
+  resolve-deployments:
+    runs-on: ubuntu-latest
     name: Resolve Deployment Artifacts
+    env:
+      TEMP_APPSERVICES_MATRIX: ${{ github.workspace }}/temp/appservice-matrix.tmp
+      WEBSTORE: ${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}
+      MANAGER: ${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}
+      SERVICES: ${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}
+      FEEDS: ${{ inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch' }}
+      ACCOUNTS: ${{ inputs.deploy-to-webaccounts }}
+      SKIP_ALL: ${{ github.event_name != 'repository_dispatch' && !inputs.deploy-to-webstore && !inputs.deploy-to-webportal && !inputs.deploy-to-webservices && !inputs.deploy-to-webfeeds && !inputs.deploy-to-webaccounts }}
+    outputs:
+      webstore: ${{ steps.set-deployment-flags.outputs.webstore }}
+      manager: ${{ steps.set-deployment-flags.outputs.manager }}
+      services: ${{ steps.set-deployment-flags.outputs.services }}
+      feeds: ${{ steps.set-deployment-flags.outputs.feeds }}
+      accounts: ${{ steps.set-deployment-flags.outputs.accounts }}
+      skip-all: ${{ steps.set-deployment-flags.outputs.skip-all }}
+      appservices: ${{ steps.set-deployment-matrix.outputs.appservices }}
     steps:
 
+    - name: Set Deployment Flags
+      id: set-deployment-flags
+      run: |
+        (
+          echo "webstore=${{ env.WEBSTORE }}" >> $GITHUB_OUTPUT
+          echo "manager=${{ env.MANAGER }}" >> $GITHUB_OUTPUT
+          echo "services=${{ env.SERVICES }}" >> $GITHUB_OUTPUT
+          echo "feeds=${{ env.FEEDS }}" >> $GITHUB_OUTPUT
+          echo "accounts=${{ env.ACCOUNTS }}" >> $GITHUB_OUTPUT
+          echo "skip-all=${{ env.SKIP_ALL }}" >> $GITHUB_OUTPUT
+        )
+
+    - name: Create Deployment Matrix
+      id: set-deployment-matrix
+      if: ${{ env.SKIP_ALL != 'true' }}
+      run: |
+        (shopt -s nocasematch;
+          if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
+            echo "webstore" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+          fi
+          if [[ "${{ env.MANAGER }}" == "true" ]]; then
+            echo "manager" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+          fi
+          if [[ "${{ env.SERVICES }}" == "true" ]]; then
+            echo "services" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+          fi
+          if [[ "${{ env.FEEDS }}" == "true" ]]; then
+            echo "feeds" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+          fi
+          if [[ "${{ env.ACCOUNTS }}" == "true" ]]; then
+            echo "accounts" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+          fi
+        )
+        echo "appservices=$(jq -R -s 'split("\n") | map(select(. != ""))' "${{ env.TEMP_APPSERVICES_MATRIX }}")" >> $GITHUB_OUTPUT
+        
     - name: Download All Deployment Artifacts
+      if: ${{ env.SKIP_ALL != 'true' }}
       uses: dawidd6/action-download-artifact@v8
       with:
         github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
@@ -77,30 +119,9 @@ jobs:
         workflow_conclusion: success
         name: ${{ github.event.inputs.artifacts-name || github.event.client_payload.artifacts-name }}
         path: ./artifacts
-    
-    - name: '[DEBUG] List All Deployment Artifacts'
-      working-directory: ./artifacts
-      run: |
-        Get-ChildItem -Path . -Recurse
-
-    - name: Define Artifacts to Deploy
-      run: |
-        "DEPLOYMENTS_WEBSTORE=${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
-        "DEPLOYMENTS_WEBPORTAL=${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
-        "DEPLOYMENTS_WEBSERVICES=${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
-        "DEPLOYMENTS_WEBFEEDS=${{ inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch' }}" >> $env:GITHUB_ENV
-        "DEPLOYMENTS_WEBACCOUNTS=${{ inputs.deploy-to-webaccounts }}" >> $env:GITHUB_ENV
-
-    - name: '[DEBUG] List Enabled Deployments'
-      run: |
-        $env:DEPLOYMENTS_WEBSTORE
-        $env:DEPLOYMENTS_WEBPORTAL
-        $env:DEPLOYMENTS_WEBSERVICES
-        $env:DEPLOYMENTS_WEBFEEDS
-        $env:DEPLOYMENTS_WEBACCOUNTS
-  
+        
     - name: Upload WebStore Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBSTORE == 'true' }}
+      if: ${{ env.WEBSTORE == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: webstore # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -109,7 +130,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebPortal Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBPORTAL == 'true' }}
+      if: ${{ env.MANAGER == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: manager # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -118,7 +139,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebServices Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBSERVICES == 'true' }}
+      if: ${{ env.SERVICES == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: services # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -127,7 +148,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebFeeds Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBFEEDS == 'true' }}
+      if: ${{ env.FEEDS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: feeds # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -136,7 +157,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebAccounts Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBACCOUNTS == 'true' }}
+      if: ${{ env.ACCOUNTS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: accounts # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -145,14 +166,15 @@ jobs:
         compression-level: 0
 
   appservice-deployment:
-    needs: [environment-details, resolve-deploy-artifacts]
-    name: Deploy ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
+    needs: [environment-details, resolve-deployments]
+    name: ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    if: ${{ needs.resolve-deployments.outputs.skip-all == 'false' }}
     strategy:
       fail-fast: false
       matrix:
-        appservice: [webstore, manager, services, feeds, accounts]
+        appservice: ${{ fromJSON(needs.resolve-deployments.outputs.appservices) }}
         os: [windows-latest]
     
     environment:
@@ -161,18 +183,15 @@ jobs:
 
     env:
       DEPLOYMENT_SKIPPED: false
-      APPSERVICE_NAME: ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
       APPSERVICE_PACKAGE: ${{ github.workspace }}/artifacts/fastchannel-${{ matrix.appservice }}-zipdeploy.zip
+      APPSERVICE_NAME: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', matrix.appservice != 'accounts' && '-' || '', matrix.appservice != 'accounts' && needs.environment-details.outputs.appservice-suffix || '')) }}
 
     steps:
     - name: Assert Deployment Flags
       run: >-
         "DEPLOYMENT_SKIPPED=${{
-          (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE == 'true') ||
-          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL == 'true') || 
-          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES == 'true') ||
-          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS == 'true') ||
-          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS == 'true') }}" >> $env:GITHUB_ENV
+          needs.resolve-deployments.outputs.skip-all == 'true' ||
+          needs.resolve-deployments.outputs[matrix.appservice] != 'true' }}" >> $env:GITHUB_ENV
         echo "DEPLOYMENT_SKIPPED=$env:DEPLOYMENT_SKIPPED"
     
     - name: Skipped ${{ env.APPSERVICE_NAME }} deployment

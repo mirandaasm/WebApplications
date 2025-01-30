@@ -17,14 +17,14 @@ on:
         value: ${{ inputs.environment-name }}
       url:
         description: 'Environment URL'
-        value: ${{ jobs.define-environment-details.outputs.environment-url }}
+        value: ${{ jobs.set-environment-details.outputs.environment-url }}
       appservice-suffix:
         description: 'AppService Suffix'
-        value: ${{ jobs.define-environment-details.outputs.appservice-suffix }}
+        value: ${{ jobs.set-environment-details.outputs.appservice-suffix }}
 
 jobs:
-  define-environment-details:
-    name: Define Environment Details
+  set-environment-details:
+    name: Set
     runs-on: ubuntu-latest
     outputs:
       environment-url: ${{ steps.set-environment-url.outputs.environment-url }}
