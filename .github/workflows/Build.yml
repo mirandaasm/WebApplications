@@ -128,7 +128,7 @@ jobs:
               "ref_type": "${{ github.ref_type }}",
               "sha": "${{ github.sha }}"
             },
-            "is-pre-release": "${{ ! startsWith(github.ref, 'refs/tags/v') }}"
+            "is-pre-release": ${{ ! startsWith(github.ref, 'refs/tags/v') }},
             "version-number": "${{ env.GitVersion_MajorMinorPatch }}",
             "artifacts-name": "ZipDeployPackages",
             "environment": "B2B Dev"
