@@ -8,14 +8,25 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{AA21DC07-3B78-49E6-BFF2-6090965336B3}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
-		..\.github\workflows\Build.yml = ..\.github\workflows\Build.yml
-		Directory.Build.props = Directory.Build.props
 		..\LICENSE = ..\LICENSE
-		..\.github\workflows\Publish.yml = ..\.github\workflows\Publish.yml
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B7ACBC0A-E253-4EE5-A0EB-C7EEC5406EF3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{443B53A7-FD58-4C4A-B33D-F3A45A681447}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{DCFD77CE-35C4-4E84-96E0-E2FD5575B8C1}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\Build.yml = ..\.github\workflows\Build.yml
+		..\.github\workflows\Deploy.yml = ..\.github\workflows\Deploy.yml
+		..\.github\workflows\Environments.yml = ..\.github\workflows\Environments.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{CA6A6A24-D840-4654-A76E-C1519E205043}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,5 +44,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C7B62B6E-C990-4A5E-A8E3-9842938446DB} = {B7ACBC0A-E253-4EE5-A0EB-C7EEC5406EF3}
+		{DCFD77CE-35C4-4E84-96E0-E2FD5575B8C1} = {443B53A7-FD58-4C4A-B33D-F3A45A681447}
 	EndGlobalSection
 EndGlobal
