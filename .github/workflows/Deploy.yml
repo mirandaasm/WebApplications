@@ -100,7 +100,7 @@ jobs:
         $env:DEPLOYMENTS_WEBACCOUNTS
   
     - name: Upload WebStore Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBSTORE }}
+      if: ${{ env.DEPLOYMENTS_WEBSTORE == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: webstore # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -109,7 +109,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebPortal Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBPORTAL }}
+      if: ${{ env.DEPLOYMENTS_WEBPORTAL == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: manager # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -118,7 +118,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebServices Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBSERVICES }}
+      if: ${{ env.DEPLOYMENTS_WEBSERVICES == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: services # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -127,7 +127,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebFeeds Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBFEEDS }}
+      if: ${{ env.DEPLOYMENTS_WEBFEEDS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: feeds # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -136,7 +136,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebAccounts Deployment Artifact
-      if: ${{ env.DEPLOYMENTS_WEBACCOUNTS }}
+      if: ${{ env.DEPLOYMENTS_WEBACCOUNTS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
         name: accounts # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -150,11 +150,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     if: >-
-      ${{ (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE) ||
-          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL) || 
-          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES) ||
-          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS) ||
-          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS) }}
+      ${{ (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE == 'true') ||
+          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL == 'true') || 
+          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES == 'true') ||
+          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS == 'true') ||
+          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS == 'true') }}
     strategy:
       fail-fast: false
       matrix:
