@@ -112,10 +112,11 @@ jobs:
         cat ${matrix_file}
         results=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")
         echo ${results}
-        echo "appservices=${results}" >> $GITHUB_OUTPUT
         
+    #echo "appservices=${results}" >> $GITHUB_OUTPUT
+
     - name: Download All Deployment Artifacts
-      if: ${{ env.SKIP_ALL != 'true' }}
+      if: ${{ env.SKIP_ALL != 'true' && false }}
       uses: dawidd6/action-download-artifact@v8
       with:
         github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
@@ -125,7 +126,7 @@ jobs:
         path: ./artifacts
         
     - name: Upload WebStore Deployment Artifact
-      if: ${{ env.WEBSTORE == 'true' }}
+      if: ${{ env.WEBSTORE == 'true' && false }}
       uses: actions/upload-artifact@v4
       with:        
         name: webstore # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -134,7 +135,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebPortal Deployment Artifact
-      if: ${{ env.MANAGER == 'true' }}
+      if: ${{ env.MANAGER == 'true' && false }}
       uses: actions/upload-artifact@v4
       with:        
         name: manager # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -143,7 +144,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebServices Deployment Artifact
-      if: ${{ env.SERVICES == 'true' }}
+      if: ${{ env.SERVICES == 'true' && false }}
       uses: actions/upload-artifact@v4
       with:        
         name: services # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -152,7 +153,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebFeeds Deployment Artifact
-      if: ${{ env.FEEDS == 'true' }}
+      if: ${{ env.FEEDS == 'true' && false }}
       uses: actions/upload-artifact@v4
       with:        
         name: feeds # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -161,7 +162,7 @@ jobs:
         compression-level: 0
 
     - name: Upload WebAccounts Deployment Artifact
-      if: ${{ env.ACCOUNTS == 'true' }}
+      if: ${{ env.ACCOUNTS == 'true' && false }}
       uses: actions/upload-artifact@v4
       with:        
         name: accounts # Artifact name must match one of the 'appservice' Matrix names on the next job
@@ -174,7 +175,7 @@ jobs:
     name: ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
-    if: ${{ needs.resolve-deployments.outputs.skip-all == 'false' }}
+    if: ${{ needs.resolve-deployments.outputs.skip-all == 'false' && false }}
     strategy:
       fail-fast: false
       matrix:
