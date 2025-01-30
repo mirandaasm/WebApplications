@@ -93,19 +93,19 @@ jobs:
       run: |
         (shopt -s nocasematch;
           if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
-            echo "webstore" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "webstore" > ${{ env.TEMP_APPSERVICES_MATRIX }}
           fi
           if [[ "${{ env.MANAGER }}" == "true" ]]; then
-            echo "manager" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "manager" > ${{ env.TEMP_APPSERVICES_MATRIX }}
           fi
           if [[ "${{ env.SERVICES }}" == "true" ]]; then
-            echo "services" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "services" > ${{ env.TEMP_APPSERVICES_MATRIX }}
           fi
           if [[ "${{ env.FEEDS }}" == "true" ]]; then
-            echo "feeds" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "feeds" > ${{ env.TEMP_APPSERVICES_MATRIX }}
           fi
           if [[ "${{ env.ACCOUNTS }}" == "true" ]]; then
-            echo "accounts" >> ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "accounts" > ${{ env.TEMP_APPSERVICES_MATRIX }}
           fi
         )
         echo "appservices=$(jq -R -s 'split("\n") | map(select(. != ""))' "${{ env.TEMP_APPSERVICES_MATRIX }}")" >> $GITHUB_OUTPUT
