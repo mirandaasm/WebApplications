@@ -77,7 +77,7 @@ jobs:
 
             if [[ "${env_name}" == "B2B Dev" ]]; then
 
-              echo "appservice-suffix=b2bdev" >> $GITHUB_OUTPUT
+              echo "appservice-suffix=tests" >> $GITHUB_OUTPUT
 
             elif [[ "${env_name}" == "Bead Shop" ]]; then
 
