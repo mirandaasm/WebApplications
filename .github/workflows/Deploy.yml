@@ -109,9 +109,9 @@ jobs:
             echo 'accounts' > ${matrix_file}
           fi
         )
-        results=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")
+        results="'$(jq -R -s -c 'split("\n") | map(select(. != ""))' "${matrix_file}")'"
         echo ${results}
-        echo 'appservices="${results}"' >> $GITHUB_OUTPUT
+        echo "appservices='${results}'" >> $GITHUB_OUTPUT
         
     - name: Download All Deployment Artifacts
       if: ${{ env.SKIP_ALL != 'true' }}
