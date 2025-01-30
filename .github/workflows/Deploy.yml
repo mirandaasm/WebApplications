@@ -112,9 +112,8 @@ jobs:
         cat ${matrix_file}
         results=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")
         echo ${results}
+        echo 'appservices="${results}"' >> $GITHUB_OUTPUT
         
-    #echo "appservices=${results}" >> $GITHUB_OUTPUT
-
     - name: Download All Deployment Artifacts
       if: ${{ env.SKIP_ALL != 'true' && false }}
       uses: dawidd6/action-download-artifact@v8
