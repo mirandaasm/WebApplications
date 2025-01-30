@@ -122,7 +122,6 @@ jobs:
         client-payload: |-
           {
             "github": {
-              "event": ${{ toJSON(github.event) }},
               "event_name": "${{ github.event_name }}",
               "ref": "${{ github.ref }}",
               "ref_name": "${{ github.ref_name }}",
