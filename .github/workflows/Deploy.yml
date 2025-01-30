@@ -3,7 +3,10 @@
 
 name: Deploy To Azure App Services
 
-run-name: ${{ format('Deploying {0} into Azure AppServices{1} {2}', '[Untagged Build]', ':', github.event.client_payload.environment || inputs.environment) }}
+run-name: >-
+  ${{ format('Deploying {0} into Azure AppServices{1} {2}',
+  ((github.event_name == 'repository_dispatch' && github.event.client_payload.is-pre-release) || (!startsWith(github.ref, 'refs/tags/v')) && '[Untagged Build]' || (github.event.client_payload.github.ref_name || github.ref_name)),
+  ':', github.event.client_payload.environment || inputs.environment) }}
 
 on:
   repository_dispatch:
@@ -143,15 +146,9 @@ jobs:
 
   appservice-deployment:
     needs: [environment-details, resolve-deploy-artifacts]
-    name: Deploy ${{ env.APPSERVICE_NAME }}
+    name: Deploy ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
-    if: >-
-      ${{ (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE == 'true') ||
-          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL == 'true') || 
-          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES == 'true') ||
-          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS == 'true') ||
-          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS == 'true') }}
     strategy:
       fail-fast: false
       matrix:
@@ -163,11 +160,27 @@ jobs:
       url: ${{ needs.environment-details.outputs.url }}
 
     env:
+      DEPLOYMENT_SKIPPED: false
       APPSERVICE_NAME: ${{ format('fastchannel-{0}-{1}', matrix.appservice, needs.environment-details.outputs.appservice-suffix) }}
       APPSERVICE_PACKAGE: ${{ github.workspace }}/artifacts/fastchannel-${{ matrix.appservice }}-zipdeploy.zip
 
     steps:
+    - name: Assert Deployment Flags
+      run: >-
+        "DEPLOYMENT_SKIPPED=${{
+          (matrix.appservice == 'webstore' && env.DEPLOYMENTS_WEBSTORE == 'true') ||
+          (matrix.appservice == 'manager'  && env.DEPLOYMENTS_WEBPORTAL == 'true') || 
+          (matrix.appservice == 'services' && env.DEPLOYMENTS_WEBSERVICES == 'true') ||
+          (matrix.appservice == 'feeds'    && env.DEPLOYMENTS_WEBFEEDS == 'true') ||
+          (matrix.appservice == 'accounts' && env.DEPLOYMENTS_WEBACCOUNTS == 'true') }}" >> $env:GITHUB_ENV
+        echo "DEPLOYMENT_SKIPPED=$env:DEPLOYMENT_SKIPPED"
+    
+    - name: Skipped ${{ env.APPSERVICE_NAME }} deployment
+      if: ${{ env.DEPLOYMENT_SKIPPED == 'true' }}
+      run: echo "Deployment skipped for app ${{ env.APPSERVICE_NAME }}"
+      
     - name: 'Download [${{ matrix.appservice }}] Artifact'
+      if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
       uses: actions/download-artifact@v4
       with:
         merge-multiple: true
@@ -175,11 +188,13 @@ jobs:
         name: ${{ matrix.appservice }}
 
     - name: Login via Azure CLI
+      if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Deploy To Azure App Service
+      if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.APPSERVICE_NAME }}
@@ -188,16 +203,15 @@ jobs:
   cleanup-resources:
     needs: [appservice-deployment]
     name: Cleanup Resources
-    runs-on: ${{ matrix.os }}
-    continue-on-error: true
+    runs-on: windows-latest
     if: always()
-    strategy:
-      fail-fast: false
-      matrix:
-        appservice: [webstore, manager, services, feeds, accounts]
-        os: [windows-latest]
     steps:
     - name: Cleanup Deployment Artifacts
       uses: geekyeggo/delete-artifact@v5
       with:
-        name: ${{ matrix.appservice }}
+        name: |
+          webstore
+          manager
+          services
+          feeds
+          accounts
