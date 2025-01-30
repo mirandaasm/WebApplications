@@ -94,22 +94,24 @@ jobs:
         touch ${matrix_file}
         (shopt -s nocasematch;
           if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
-            echo "webstore" > ${matrix_file}
+            echo 'webstore' > ${matrix_file}
           fi
           if [[ "${{ env.MANAGER }}" == "true" ]]; then
-            echo "manager" > ${matrix_file}
+            echo 'manager' > ${matrix_file}
           fi
           if [[ "${{ env.SERVICES }}" == "true" ]]; then
-            echo "services" > ${matrix_file}
+            echo 'services' > ${matrix_file}
           fi
           if [[ "${{ env.FEEDS }}" == "true" ]]; then
-            echo "feeds" > ${matrix_file}
+            echo 'feeds' > ${matrix_file}
           fi
           if [[ "${{ env.ACCOUNTS }}" == "true" ]]; then
-            echo "accounts" > ${matrix_file}
+            echo 'accounts' > ${matrix_file}
           fi
         )
-        echo "appservices=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")" >> $GITHUB_OUTPUT
+        results=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")
+        echo ${results}
+        echo "appservices=${results}" >> $GITHUB_OUTPUT
         
     - name: Download All Deployment Artifacts
       if: ${{ env.SKIP_ALL != 'true' }}
