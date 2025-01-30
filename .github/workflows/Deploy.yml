@@ -58,7 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Resolve Deployment Artifacts
     env:
-      TEMP_APPSERVICES_MATRIX: ${{ github.workspace }}/temp/appservice-matrix.tmp
       WEBSTORE: ${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}
       MANAGER: ${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}
       SERVICES: ${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}
@@ -91,24 +90,26 @@ jobs:
       id: set-deployment-matrix
       if: ${{ env.SKIP_ALL != 'true' }}
       run: |
+        matrix_file="${{ runer.temp }}/appservice-matrix.txt"
+        touch ${matrix_file}
         (shopt -s nocasematch;
           if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
-            echo "webstore" > ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "webstore" > ${matrix_file}
           fi
           if [[ "${{ env.MANAGER }}" == "true" ]]; then
-            echo "manager" > ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "manager" > ${matrix_file}
           fi
           if [[ "${{ env.SERVICES }}" == "true" ]]; then
-            echo "services" > ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "services" > ${matrix_file}
           fi
           if [[ "${{ env.FEEDS }}" == "true" ]]; then
-            echo "feeds" > ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "feeds" > ${matrix_file}
           fi
           if [[ "${{ env.ACCOUNTS }}" == "true" ]]; then
-            echo "accounts" > ${{ env.TEMP_APPSERVICES_MATRIX }}
+            echo "accounts" > ${matrix_file}
           fi
         )
-        echo "appservices=$(jq -R -s 'split("\n") | map(select(. != ""))' "${{ env.TEMP_APPSERVICES_MATRIX }}")" >> $GITHUB_OUTPUT
+        echo "appservices=$(jq -R -s 'split("\n") | map(select(. != ""))' "${matrix_file}")" >> $GITHUB_OUTPUT
         
     - name: Download All Deployment Artifacts
       if: ${{ env.SKIP_ALL != 'true' }}
