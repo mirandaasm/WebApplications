@@ -22,7 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		..\.github\workflows\BuildAndPack.yml = ..\.github\workflows\BuildAndPack.yml
 		..\.github\workflows\Deploy.yml = ..\.github\workflows\Deploy.yml
 		..\.github\workflows\Environments.yml = ..\.github\workflows\Environments.yml
-		..\.github\workflows\TriggerBuildAndPack.yml = ..\.github\workflows\TriggerBuildAndPack.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{CA6A6A24-D840-4654-A76E-C1519E205043}"
