@@ -1,22 +1,35 @@
 # This workflow will build and pack the latest version of the application
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Build And Pack Latest Version
+name: Build And Pack New Artifacts
 
 on:
   pull_request:
-    branches: [ "main" ]
-  push:
     branches:
       - main
-    tags:
-      - 'v*.*.*'
-      - 'v*.*.*-*'
+    types:
+      - closed
+
+  workflow_dispatch:
+    inputs:
+      skip-deployment:
+        description: 'Skip Deployment'
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+env:
+  PR_NOT_MERGED: ${{ (github.event_name == 'pull_request' && github.event.pull_request.merged == false) && 'true' || 'false' }}
+  IS_NEW_RELEASE: ${{ (github.event_name == 'pull_request' && github.event.pull_request.merged == true) && 'true' || 'false' }}
 
 jobs:
   build:
     runs-on: windows-latest
-    name: Build And Pack Latest Version
+    name: Build And Pack New Artifacts
 
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
@@ -24,9 +37,18 @@ jobs:
       WEBSTORE_CSPROJECT_FILE: ${{ github.workspace }}/src/WebStore/WebStore.csproj
       MSBUILD_LOGGER_FILE: ${{ github.workspace }}/temp/Reupen.MSBuild.GitHubLogger.dll
       ARTIFACTS_STAGING_DIR: ${{ github.workspace }}/artifacts
-      
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Check PR Merge Status
+      if: env.PR_NOT_MERGED == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh run cancel ${{ github.run_id }}
+        gh run watch ${{ github.run_id }}
+  
+    - name: Checkout Repository
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -90,30 +112,83 @@ jobs:
       run: |
         for /d %%X in (*) do "7z" a "%%X.zip" ".\%%X\*"
 
-    - name: Upload Deployment Artifacts
+    - name: Upload WebStore Artifact
       uses: actions/upload-artifact@v4
+      if: env.IS_NEW_RELEASE != 'true'
       with:
-        name: ZipDeployPackages
-        path: artifacts/*.zip
+        name: fastchannel-webstore-zipdeploy
+        path: artifacts/fastchannel-webstore-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
-    - name: Create New Version Release
-      if: startsWith(github.ref, 'refs/tags/v')
-      id: create_release
-      uses: softprops/action-gh-release@v2
+    - name: Upload WebPortal Artifact
+      uses: actions/upload-artifact@v4
+      if: env.IS_NEW_RELEASE != 'true'
       with:
-        name: Framework SDK ${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        files: artifacts/*.zip
+        name: fastchannel-manager-zipdeploy
+        path: artifacts/fastchannel-manager-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebServices Artifact
+      uses: actions/upload-artifact@v4
+      if: env.IS_NEW_RELEASE != 'true'
+      with:
+        name: fastchannel-services-zipdeploy
+        path: artifacts/fastchannel-services-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebFeeds Artifact
+      uses: actions/upload-artifact@v4
+      if: env.IS_NEW_RELEASE != 'true'
+      with:
+        name: fastchannel-feeds-zipdeploy
+        path: artifacts/fastchannel-feeds-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebAccounts Artifact
+      uses: actions/upload-artifact@v4
+      if: env.IS_NEW_RELEASE != 'true'
+      with:
+        name: fastchannel-accounts-zipdeploy
+        path: artifacts/fastchannel-accounts-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Create New Release And Tag
+      uses: ncipollo/release-action@v1
+      if: env.IS_NEW_RELEASE == 'true'
+      env:
+        TAG_NAME: ${{ format('v{0}', env.GitVersion_MajorMinorPatch) }}
+      with:
+        artifactErrorsFailBuild: true
+        generateReleaseNotes: true
+        commit: main
+        tag: ${{ env.TAG_NAME }}
+        name: Framework SDK ${{ env.TAG_NAME }}
         body: |
           A Release atual contém a versão mais recente do SDK da Plataforma Fastchannel,
           e foi compilado para ser executado a partir do uso do .NET Framework v4.8.1.
-        draft: false
-        prerelease: false
-        make_latest: true
-        generate_release_notes: true
+        artifacts: artifacts/*.zip
+
+    # - name: Create New Version Release
+    #   if: startsWith(github.ref, 'refs/tags/v')
+    #   id: create_release
+    #   uses: softprops/action-gh-release@v2
+    #   with:
+    #     name: Framework SDK ${{ github.ref_name }}
+    #     tag_name: ${{ github.ref_name }}
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     files: artifacts/*.zip
+    #     body: |
+    #       A Release atual contém a versão mais recente do SDK da Plataforma Fastchannel,
+    #       e foi compilado para ser executado a partir do uso do .NET Framework v4.8.1.
+    #     draft: false
+    #     prerelease: false
+    #     make_latest: true
+    #     generate_release_notes: true
 
     - name: New Deployment Artifacts Available
       uses: peter-evans/repository-dispatch@v3
@@ -128,8 +203,8 @@ jobs:
               "ref_type": "${{ github.ref_type }}",
               "sha": "${{ github.sha }}"
             },
-            "is-pre-release": ${{ ! startsWith(github.ref, 'refs/tags/v') }},
-            "version-number": "${{ env.GitVersion_MajorMinorPatch }}",
-            "artifacts-name": "ZipDeployPackages",
-            "environment": "B2B Dev"
+            "environment": "B2B Dev",
+            "is_pre_release": ${{ env.IS_NEW_RELEASE != 'true' }},
+            "version_number": "${{ env.GitVersion_MajorMinorPatch }}",
+            "tag_name": ${{ env.IS_NEW_RELEASE == 'true' && format('v{0}', env.GitVersion_MajorMinorPatch) || '' }}
           }

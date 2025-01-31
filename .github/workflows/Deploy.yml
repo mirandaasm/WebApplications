@@ -58,12 +58,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Resolve Deployment Artifacts
     env:
-      WEBSTORE: ${{ inputs.deploy-to-webstore || github.event_name == 'repository_dispatch' }}
-      MANAGER: ${{ inputs.deploy-to-webportal || github.event_name == 'repository_dispatch' }}
-      SERVICES: ${{ inputs.deploy-to-webservices || github.event_name == 'repository_dispatch' }}
-      FEEDS: ${{ inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch' }}
-      ACCOUNTS: ${{ inputs.deploy-to-webaccounts }}
-      SKIP_ALL: ${{ github.event_name != 'repository_dispatch' && !inputs.deploy-to-webstore && !inputs.deploy-to-webportal && !inputs.deploy-to-webservices && !inputs.deploy-to-webfeeds && !inputs.deploy-to-webaccounts }}
+      WEBSTORE: ${{ (inputs.deploy-to-webstore || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
+      MANAGER: ${{ (inputs.deploy-to-webportal || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
+      SERVICES: ${{ (inputs.deploy-to-webservices || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
+      FEEDS: ${{ (inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
+      ACCOUNTS: ${{ (inputs.deploy-to-webaccounts && 'true') || 'false' }}
+      SKIP_ALL: ${{ (github.event_name != 'repository_dispatch' && !inputs.deploy-to-webstore && !inputs.deploy-to-webportal && !inputs.deploy-to-webservices && !inputs.deploy-to-webfeeds && !inputs.deploy-to-webaccounts && 'true') || 'false' }}
     outputs:
       webstore: ${{ steps.set-deployment-flags.outputs.webstore }}
       manager: ${{ steps.set-deployment-flags.outputs.manager }}
@@ -109,21 +109,11 @@ jobs:
             echo 'accounts' > ${matrix_file}
           fi
         )
-        results="'$(jq -R -s -c 'split("\n") | map(select(. != ""))' "${matrix_file}")'"
-        echo ${results}
-        echo "appservices='${results}'" >> $GITHUB_OUTPUT
+        matrix_results="'$(jq -R -s -c 'split("\n") | map(select(. != ""))' "${matrix_file}")'"
+        echo ${matrix_results}
+        echo "appservices='${matrix_results}'" >> $GITHUB_OUTPUT
         
-    - name: Download All Deployment Artifacts
-      if: ${{ env.SKIP_ALL != 'true' }}
-      uses: dawidd6/action-download-artifact@v8
-      with:
-        github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
-        workflow: Build.yml
-        workflow_conclusion: success
-        name: ${{ github.event.inputs.artifacts-name || github.event.client_payload.artifacts-name }}
-        path: ./artifacts
-        
-    - name: Upload WebStore Deployment Artifact
+    - name: Prepare WebStore Deployment Artifact
       if: ${{ env.WEBSTORE == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
@@ -132,7 +122,7 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebPortal Deployment Artifact
+    - name: Prepare WebPortal Deployment Artifact
       if: ${{ env.MANAGER == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
@@ -141,7 +131,7 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebServices Deployment Artifact
+    - name: Prepare WebServices Deployment Artifact
       if: ${{ env.SERVICES == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
@@ -150,7 +140,7 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebFeeds Deployment Artifact
+    - name: Prepare WebFeeds Deployment Artifact
       if: ${{ env.FEEDS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
@@ -159,7 +149,7 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    - name: Upload WebAccounts Deployment Artifact
+    - name: Prepare WebAccounts Deployment Artifact
       if: ${{ env.ACCOUNTS == 'true' }}
       uses: actions/upload-artifact@v4
       with:        
@@ -186,7 +176,7 @@ jobs:
 
     env:
       DEPLOYMENT_SKIPPED: false
-      APPSERVICE_PACKAGE: ${{ github.workspace }}/artifacts/fastchannel-${{ matrix.appservice }}-zipdeploy.zip
+      ARTIFACT_NAME: fastchannel-${{ matrix.appservice }}-zipdeploy
       APPSERVICE_NAME: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', matrix.appservice != 'accounts' && '-' || '', matrix.appservice != 'accounts' && needs.environment-details.outputs.appservice-suffix || '')) }}
 
     steps:
@@ -200,6 +190,16 @@ jobs:
     - name: Skipped ${{ env.APPSERVICE_NAME }} deployment
       if: ${{ env.DEPLOYMENT_SKIPPED == 'true' }}
       run: echo "Deployment skipped for app ${{ env.APPSERVICE_NAME }}"
+        
+    - name: Fetch Deployment Artifact
+      if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
+      uses: dawidd6/action-download-artifact@v8
+      with:
+        github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
+        workflow: Build.yml
+        workflow_conclusion: success
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ./artifacts
       
     - name: 'Download [${{ matrix.appservice }}] Artifact'
       if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
