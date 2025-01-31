@@ -4,13 +4,11 @@
 name: Build And Pack New Artifacts
 
 on:
-  workflow_call:
-    inputs:
-      skip_deployment:
-        description: 'Skip Deployment'
-        type: boolean
-        default: false
-        required: false
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
 
   workflow_dispatch:
     inputs:
@@ -24,22 +22,27 @@ permissions:
   contents: write
   pull-requests: write
 
-env:
-  IS_NEW_RELEASE: ${{ (github.event_name != 'workflow_dispatch' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'refs/heads/main') && 'true' || 'false' }}
-
 jobs:
+  check_merge_status:
+    name: Check PR Merge Status
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
+
+    steps:
+      - name: Merge Status OK
+        run: echo "Running manually, or PR was merged successfully!"
+
   build:
     runs-on: windows-latest
     name: Build And Pack New Artifacts
+    needs: [check_merge_status]
 
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       ROOT_SOLUTION_FILE: ${{ github.workspace }}/src/WebApplications.sln
+      IS_NEW_RELEASE: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
 
     steps:
-    - name: '[DEBUG] Show variables!'
-      run: echo "IS_NEW_RELEASE=${{ env.IS_NEW_RELEASE }}"
-  
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
