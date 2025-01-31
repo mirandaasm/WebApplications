@@ -14,8 +14,14 @@ jobs:
   set-environment-details:
     name: Check PR Merge Status
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'refs/heads/main'
 
     steps:
+      - name: '[DEBUG] SHOW VARS'
+        run: |
+          echo "github.event_name=${{ github.event_name }}"
+          echo "github.event.pull_request.merged=${{ github.event.pull_request.merged }}"
+          echo "github.event.pull_request.base.ref=${{ github.event.pull_request.base.ref }}"
+
       - name: Dispatch Repository Event
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'refs/heads/main'
         uses: ./.github/workflows/BuildAndPack.yml
