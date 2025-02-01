@@ -1,7 +1,7 @@
-# This is a reusable workflow, used to define constant values related to the available environments
+﻿# This is a reusable workflow, used to define constant values related to the available environments
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Get Environment Details
+name: ᐳ Get Environment Details
 
 on:
   workflow_call:

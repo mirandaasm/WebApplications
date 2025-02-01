@@ -1,0 +1,163 @@
+# Este workflow é responsável por compilar e empacotar os novos artefatos gerados a partir de um build de sucesso,
+# E disponibilizá-los para download ou implantação em um ambiente de desenvolvimento ou produção após o upload dos artefatos no GitHub.
+
+# Serão gerados os seguintes artefatos:
+# - fastchannel-webstore-zipdeploy.zip
+# - fastchannel-manager-zipdeploy.zip
+# - fastchannel-services-zipdeploy.zip
+# - fastchannel-feeds-zipdeploy.zip
+# - fastchannel-accounts-zipdeploy.zip
+
+# Por se tratar de um empacotamento "não versionado",
+# não será criada uma nova versão de release no repositório,
+# mas ainda assim os artefatos gerados poderão ser implantados automaticamente na Azure,
+# sendo publicados de forma automatizada no ambiente selecionado.
+
+name: Build Untagged
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to Deploy'
+        type: environment
+        required: false
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build And Pack
+
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      ROOT_SOLUTION_FILE: ${{ github.workspace }}/src/WebApplications.sln
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+
+    - name: Setup GitVersion Tools (6.0.x)
+      uses: gittools/actions/gitversion/setup@v3
+      with:
+        versionSpec: '6.0.x'
+        
+    - name: Determine Build Version
+      uses: gittools/actions/gitversion/execute@v3
+      with:
+        updateAssemblyInfo: true
+
+    - name: Setup Node.js (18.x)
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+      
+    - name: Setup MSBuild (Latest)
+      uses: microsoft/setup-msbuild@v2
+      with:
+        vs-version: latest
+
+    - name: Setup MSBuild Logger
+      run: |
+        Invoke-WebRequest -Uri https://github.com/reupen/msbuild-github-logger/releases/download/v1.0.1/Reupen.MSBuild.GitHubLogger.dll -OutFile "$Env:Temp\Reupen.MSBuild.GitHubLogger.dll"
+        
+    - name: Setup NuGet.exe CLI (6.x)
+      uses: NuGet/setup-nuget@v2
+      with:
+        nuget-version: 6.x
+
+    - name: Setup NuGet Packages Cache
+      uses: actions/cache@v4
+      id: nuget-cache
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**\packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore Solution Packages
+      run: nuget restore "${{ env.ROOT_SOLUTION_FILE }}"
+
+    - name: Build Solution Projects
+      run: |
+        msbuild "${{ env.ROOT_SOLUTION_FILE }}" /m /nologo /nr:false /logger:"$Env:Temp\Reupen.MSBuild.GitHubLogger.dll" /p:SkipInvalidConfigurations=true /p:platform="x86" /p:configuration="Release" /p:VisualStudioVersion="17.0" /p:DeployOnBuild=true /p:PublishProfile=ZipDeployArtifact /p:ExcludeGeneratedDebugSymbol=true
+
+    - name: '[DEBUG] Duplicate Deployment Folders'
+      working-directory: ./artifacts
+      run: |-
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-manager-zipdeploy" -Recurse
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-services-zipdeploy" -Recurse
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-feeds-zipdeploy" -Recurse
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-accounts-zipdeploy" -Recurse
+
+    - name: Create Deployment Artifacts
+      working-directory: ./artifacts
+      shell: cmd
+      run: |
+        for /d %%X in (*) do "7z" a "%%X.zip" ".\%%X\*"
+
+    - name: Upload WebStore Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-webstore-zipdeploy
+        path: artifacts/fastchannel-webstore-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebPortal Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-manager-zipdeploy
+        path: artifacts/fastchannel-manager-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebServices Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-services-zipdeploy
+        path: artifacts/fastchannel-services-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebFeeds Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-feeds-zipdeploy
+        path: artifacts/fastchannel-feeds-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebAccounts Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-accounts-zipdeploy
+        path: artifacts/fastchannel-accounts-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Dispatch Deployment Request
+      uses: peter-evans/repository-dispatch@v3
+      if: inputs.environment != ''
+      with:
+        event-type: ci-deployment-requested
+        client-payload: |-
+          {
+            "github": {
+              "event_name": "${{ github.event_name }}",
+              "ref": "${{ github.ref }}",
+              "ref_name": "${{ github.ref_name }}",
+              "ref_type": "${{ github.ref_type }}",
+              "sha": "${{ github.sha }}"
+            },
+            "environment": "${{ inputs.environment }}",
+            "release_version": "",
+            "run_name": "[Untagged Build]"
+          }
