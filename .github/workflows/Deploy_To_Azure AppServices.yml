@@ -57,7 +57,8 @@ jobs:
       FEEDS: ${{ (inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
       ACCOUNTS: ${{ (inputs.deploy-to-webaccounts && 'true') || 'false' }}
       SKIP_ALL: ${{ (github.event_name == 'workflow_dispatch' && !inputs.deploy-to-webstore && !inputs.deploy-to-webportal && !inputs.deploy-to-webservices && !inputs.deploy-to-webfeeds && !inputs.deploy-to-webaccounts && 'true') || 'false' }}
-      RELEASE_VERSION: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.run_name) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}
+      RELEASE_VERSION: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.release_version) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}
+      DOWNLOAD_ARTIFACTS_FROM: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.download_artifacts_from || 'Release' }}
     outputs:
       webstore: ${{ steps.set-deployment-flags.outputs.webstore }}
       manager: ${{ steps.set-deployment-flags.outputs.manager }}
@@ -66,6 +67,7 @@ jobs:
       accounts: ${{ steps.set-deployment-flags.outputs.accounts }}
       skip-all: ${{ steps.set-deployment-flags.outputs.skip-all }}
       release-version: ${{ steps.set-deployment-flags.outputs.release-version }}
+      download-artifacts-from: ${{ steps.set-deployment-flags.outputs.download-artifacts-from }}
       appservices: ${{ steps.set-deployment-matrix.outputs.appservices }}
     steps:
 
@@ -80,7 +82,20 @@ jobs:
           echo "accounts=${{ env.ACCOUNTS }}" >> $GITHUB_OUTPUT
           echo "skip-all=${{ env.SKIP_ALL }}" >> $GITHUB_OUTPUT
           echo "release-version=${{ env.RELEASE_VERSION }}" >> $GITHUB_OUTPUT
+          echo "download-artifacts-from=${{ env.DOWNLOAD_ARTIFACTS_FROM }}" >> $GITHUB_OUTPUT
         )
+
+    - name: Assert Release Exists
+      id: assert-release-exists
+      uses: insightsengineering/release-existence-action@v1
+      if: ${{ env.SKIP_ALL != 'true' && env.DOWNLOAD_ARTIFACTS_FROM == 'Release' }}
+      with:
+        release-tag: ${{ env.RELEASE_VERSION }}
+
+    - name: Validate Deployment Flags
+      if: ${{ env.SKIP_ALL != 'true' && env.DOWNLOAD_ARTIFACTS_FROM == 'Release' && !steps.assert-release-exists.outputs.release-exists }} 
+      run: |
+        echo "::error::Unable to locate the Release for tag ${{ env.RELEASE_VERSION }}" && exit 1
 
     - name: Create Deployment Matrix
       id: set-deployment-matrix
@@ -129,6 +144,7 @@ jobs:
       DEPLOYMENT_SKIPPED: false
       ARTIFACT_NAME: fastchannel-${{ matrix.appservice }}-zipdeploy.zip
       RELEASE_VERSION: ${{ needs.resolve-deployment-tasks.outputs.release-version }}
+      DOWNLOAD_ARTIFACTS_FROM: ${{ needs.resolve-deployment-tasks.outputs.download-artifacts-from }}
       APPSERVICE_NAME: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', matrix.appservice != 'accounts' && '-' || '', matrix.appservice != 'accounts' && needs.environment-details.outputs.appservice-suffix || '')) }}
 
     steps:
@@ -148,7 +164,9 @@ jobs:
       run: |
         echo "ARTIFACT_NAME=${{ env.ARTIFACT_NAME }}"
         echo "RELEASE_VERSION=${{ env.RELEASE_VERSION }}"
+        echo "DOWNLOAD_ARTIFACTS_FROM=${{ env.DOWNLOAD_ARTIFACTS_FROM }}"
         echo "APPSERVICE_NAME=${{ env.APPSERVICE_NAME }}"
+        echo "---------------------------------------------"
 
     # - name: Fetch Deployment Artifact
     #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}

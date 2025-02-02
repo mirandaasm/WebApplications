@@ -115,7 +115,7 @@ jobs:
     - name: Upload WebStore Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: fastchannel-webstore-zipdeploy
+        name: fastchannel-webstore-zipdeploy.zip
         path: artifacts/fastchannel-webstore-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
@@ -123,7 +123,7 @@ jobs:
     - name: Upload WebPortal Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: fastchannel-manager-zipdeploy
+        name: fastchannel-manager-zipdeploy.zip
         path: artifacts/fastchannel-manager-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
@@ -131,7 +131,7 @@ jobs:
     - name: Upload WebServices Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: fastchannel-services-zipdeploy
+        name: fastchannel-services-zipdeploy.zip
         path: artifacts/fastchannel-services-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
@@ -139,7 +139,7 @@ jobs:
     - name: Upload WebFeeds Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: fastchannel-feeds-zipdeploy
+        name: fastchannel-feeds-zipdeploy.zip
         path: artifacts/fastchannel-feeds-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
@@ -147,7 +147,7 @@ jobs:
     - name: Upload WebAccounts Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: fastchannel-accounts-zipdeploy
+        name: fastchannel-accounts-zipdeploy.zip
         path: artifacts/fastchannel-accounts-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
@@ -155,6 +155,9 @@ jobs:
     - name: Dispatch Deployment Request
       uses: peter-evans/repository-dispatch@v3
       if: inputs.environment != 'None'
+      env:
+        TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        RUN_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '[Untagged Build]' }}
       with:
         event-type: ci-deployment-requested
         client-payload: |-
@@ -167,6 +170,7 @@ jobs:
               "sha": "${{ github.sha }}"
             },
             "environment": "${{ inputs.environment }}",
-            "release_version": "",
-            "run_name": "[Untagged Build]"
+            "download_artifacts_from": "Build_On_Demand.yml",
+            "release_version": "${{ env.TAG_NAME }}",
+            "run_name": "${{ env.RUN_NAME }}"
           }

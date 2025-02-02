@@ -117,6 +117,8 @@ jobs:
 
     - name: Dispatch Deployment Request
       uses: peter-evans/repository-dispatch@v3
+      env:
+        TAG_NAME: ${{ format('v{0}', env.GitVersion_MajorMinorPatch) }}
       with:
         event-type: ci-deployment-requested
         client-payload: |-
@@ -129,6 +131,7 @@ jobs:
               "sha": "${{ github.sha }}"
             },
             "environment": "B2B Dev",
-            "release_version": "${{ format('v{0}', env.GitVersion_MajorMinorPatch) }}",
-            "run_name": "${{ format('v{0}', env.GitVersion_MajorMinorPatch) }}"
+            "download_artifacts_from": "Release",
+            "release_version": "${{ env.TAG_NAME }}",
+            "run_name": "${{ env.TAG_NAME }}"
           }
