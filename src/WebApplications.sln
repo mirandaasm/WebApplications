@@ -18,9 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{443B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{DCFD77CE-35C4-4E84-96E0-E2FD5575B8C1}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github\workflows\Build_Untagged.yml = ..\.github\workflows\Build_Untagged.yml
-		..\.github\workflows\Build_And_Release.yml = ..\.github\workflows\Build_And_Release.yml
-		..\.github\workflows\Deploy_To_Azure.yml = ..\.github\workflows\Deploy_To_Azure.yml
+		..\.github\workflows\Build_And_Create_Release.yml = ..\.github\workflows\Build_And_Create_Release.yml
+		..\.github\workflows\Build_On_Demand.yml = ..\.github\workflows\Build_On_Demand.yml
+		..\.github\workflows\Deploy_To_Azure AppServices.yml = ..\.github\workflows\Deploy_To_Azure AppServices.yml
 		..\.github\workflows\PR_Validation.yml = ..\.github\workflows\PR_Validation.yml
 		..\.github\workflows\ᐳ_Environments.yml = ..\.github\workflows\ᐳ_Environments.yml
 	EndProjectSection

@@ -13,15 +13,24 @@
 # mas ainda assim os artefatos gerados poderão ser implantados automaticamente na Azure,
 # sendo publicados de forma automatizada no ambiente selecionado.
 
-name: Build Untagged
+name: Build On Demand
 
 on:
   workflow_dispatch:
     inputs:
       environment:
         description: 'Environment to Deploy'
-        type: environment
-        required: false
+        required: true
+        type: choice
+        default: None
+        options:
+          - None
+          - B2B Dev
+          - Bead Shop
+          - LDI Cristais
+          - Iconic Lubrificantes
+          - SAR Medicamentos
+          - SAR Medicamentos (DEV)
 
 permissions:
   actions: write
@@ -145,7 +154,7 @@ jobs:
 
     - name: Dispatch Deployment Request
       uses: peter-evans/repository-dispatch@v3
-      if: inputs.environment != ''
+      if: inputs.environment != 'None'
       with:
         event-type: ci-deployment-requested
         client-payload: |-
