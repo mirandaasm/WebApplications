@@ -164,7 +164,7 @@ jobs:
         echo "---------------------------------------------"
         echo "github.ref=${{ github.ref }}"
         echo "tag_name="${{ env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION) }}"
-        echo "branch=${{ github.ref || (env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || 'ref/heads/main' }}"
+        echo "branch=${{ (env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || github.ref || 'ref/heads/main' }}"
 
     - name: Fetch Artifact From Build
       uses: dawidd6/action-download-artifact@v8
