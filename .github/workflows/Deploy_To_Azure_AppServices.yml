@@ -162,9 +162,6 @@ jobs:
         echo "DOWNLOAD_ARTIFACTS_FROM=${{ env.DOWNLOAD_ARTIFACTS_FROM }}"
         echo "APPSERVICE_NAME=${{ env.APPSERVICE_NAME }}"
         echo "---------------------------------------------"
-        echo "github.ref=${{ github.ref }}"
-        echo "tag_name="${{ env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION) }}"
-        echo "branch=${{ (env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || github.ref || 'ref/heads/main' }}"
 
     - name: Fetch Artifact From Build
       uses: dawidd6/action-download-artifact@v8
@@ -174,7 +171,7 @@ jobs:
         workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
         workflow_search: true
         workflow_conclusion: success
-        branch: ${{ (env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || github.ref || 'ref/heads/main' }}
+        branch: ${{ ((env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || github.ref || 'ref/heads/main') }}
         name_is_regexp: false
         name: ${{ env.ARTIFACT_NAME }}
         path: ./artifacts
