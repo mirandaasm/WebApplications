@@ -113,19 +113,19 @@ jobs:
         touch ${matrix_file}
         (shopt -s nocasematch;
           if [[ "${{ env.WEBSTORE }}" == "true" ]]; then
-            echo 'webstore' > ${matrix_file}
+            echo 'webstore' >> ${matrix_file}
           fi
           if [[ "${{ env.MANAGER }}" == "true" ]]; then
-            echo 'manager' > ${matrix_file}
+            echo 'manager' >> ${matrix_file}
           fi
           if [[ "${{ env.SERVICES }}" == "true" ]]; then
-            echo 'services' > ${matrix_file}
+            echo 'services' >> ${matrix_file}
           fi
           if [[ "${{ env.FEEDS }}" == "true" ]]; then
-            echo 'feeds' > ${matrix_file}
+            echo 'feeds' >> ${matrix_file}
           fi
           if [[ "${{ env.ACCOUNTS }}" == "true" ]]; then
-            echo 'accounts' > ${matrix_file}
+            echo 'accounts' >> ${matrix_file}
           fi
         )
         matrix_results="$(cat ${matrix_file} | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')"
@@ -158,7 +158,7 @@ jobs:
     steps:
     - name: Assert Deployment Flags
       run: >-
-        "DEPLOYMENT_SKIPPED=${{
+        echo "DEPLOYMENT_SKIPPED=${{
           needs.resolve-deployment-tasks.outputs.skip-all == 'true' ||
           needs.resolve-deployment-tasks.outputs[matrix.appservice] != 'true' }}" >> $GITHUB_ENV
         echo "DEPLOYMENT_SKIPPED=$DEPLOYMENT_SKIPPED"
