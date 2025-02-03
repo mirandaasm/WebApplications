@@ -136,7 +136,6 @@ jobs:
     needs: [environment-details, resolve-deployment-tasks]
     name: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', matrix.appservice != 'accounts' && '-' || '', matrix.appservice != 'accounts' && needs.environment-details.outputs.appservice-suffix || '')) }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     if: ${{ needs.resolve-deployment-tasks.outputs.skip-all == 'false' }}
     strategy:
       fail-fast: false
