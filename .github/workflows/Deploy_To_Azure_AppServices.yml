@@ -149,26 +149,13 @@ jobs:
       url: ${{ needs.environment-details.outputs.url }}
 
     env:
-      DEPLOYMENT_SKIPPED: false
       ARTIFACT_NAME: fastchannel-${{ matrix.appservice }}-zipdeploy.zip
       RELEASE_VERSION: ${{ needs.resolve-deployment-tasks.outputs.release-version }}
       DOWNLOAD_ARTIFACTS_FROM: ${{ needs.resolve-deployment-tasks.outputs.download-artifacts-from }}
       APPSERVICE_NAME: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', matrix.appservice != 'accounts' && '-' || '', matrix.appservice != 'accounts' && needs.environment-details.outputs.appservice-suffix || '')) }}
 
     steps:
-    - name: Assert Deployment Flags
-      run: >-
-        echo "DEPLOYMENT_SKIPPED=${{
-          needs.resolve-deployment-tasks.outputs.skip-all == 'true' ||
-          needs.resolve-deployment-tasks.outputs[matrix.appservice] != 'true' }}" >> $GITHUB_ENV
-        echo "DEPLOYMENT_SKIPPED=$DEPLOYMENT_SKIPPED"
-    
-    - name: Skipped deployment for ${{ env.APPSERVICE_NAME }}
-      if: ${{ env.DEPLOYMENT_SKIPPED == 'true' }}
-      run: echo "Skipped deployment of ${{ env.ARTIFACT_NAME }} into Azure AppService ${{ env.APPSERVICE_NAME }}"
-    
     - name: '[DEBUG] Deploying into Azure AppService'
-      if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
       run: |
         echo "ARTIFACT_NAME=${{ env.ARTIFACT_NAME }}"
         echo "RELEASE_VERSION=${{ env.RELEASE_VERSION }}"
@@ -176,23 +163,30 @@ jobs:
         echo "APPSERVICE_NAME=${{ env.APPSERVICE_NAME }}"
         echo "---------------------------------------------"
 
-    # - name: Fetch Deployment Artifact
-    #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
-    #   uses: dawidd6/action-download-artifact@v8
-    #   with:
-    #     github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
-    #     workflow: Build.yml
-    #     workflow_conclusion: success
-    #     name: ${{ env.ARTIFACT_NAME }}
-    #     path: ./artifacts
-      
-    # - name: 'Download [${{ matrix.appservice }}] Artifact'
-    #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
-    #   uses: actions/download-artifact@v4
-    #   with:
-    #     merge-multiple: true
-    #     path: ./artifacts
-    #     name: ${{ matrix.appservice }}
+    - name: Fetch Artifact From Build
+      uses: dawidd6/action-download-artifact@v8
+      if: ${{ env.DOWNLOAD_ARTIFACTS_FROM != 'Release' && endsWith(env.DOWNLOAD_ARTIFACTS_FROM, '.yml') }}
+      with:
+        github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
+        workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
+        workflow_search: true
+        workflow_conclusion: success
+        branch: ${{ github.ref || (env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || 'ref/heads/main' }}
+        name_is_regexp: false
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ./artifacts
+
+    - name: Fetch Artifact From Release
+      uses: dsaltares/fetch-gh-release-asset@v1
+      if: ${{ env.DOWNLOAD_ARTIFACTS_FROM == 'Release' }}
+      with:
+        version: ${{ format('tags/{0}', env.RELEASE_VERSION) }}
+        file: ${{ env.ARTIFACT_NAME }}
+        target: ./artifacts/${{ env.ARTIFACT_NAME }}
+
+    - name: '[DEBUG] List Artifact Files'
+      run: |
+        ls -la ./artifacts'
 
     # - name: Login via Azure CLI
     #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
