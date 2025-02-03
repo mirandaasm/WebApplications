@@ -149,7 +149,7 @@ jobs:
 
     - name: Dispatch Deployment Request
       uses: peter-evans/repository-dispatch@v3
-      if: inputs.deploy-to-azure
+      if: ${{ inputs.deploy-to-azure }}
       env:
         TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         RUN_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '[Untagged Build]' }}
