@@ -171,7 +171,7 @@ jobs:
         workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
         workflow_search: true
         workflow_conclusion: success
-        branch: ${{ ((env.RELEASE_VERSION && format('ref/tags/{0}', env.RELEASE_VERSION)) || github.ref || 'ref/heads/main') }}
+        branch: ${{ (env.RELEASE_VERSION || github.ref_name || 'main') }}
         name_is_regexp: false
         name: ${{ env.ARTIFACT_NAME }}
         path: ./artifacts
