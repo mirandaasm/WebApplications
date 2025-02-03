@@ -21,7 +21,7 @@ on:
       deploy-to-azure:
         description: 'Deploy to Azure'
         type: boolean
-        default: false
+        default: true
       environment:
         description: 'Environment to Deploy'
         type: environment

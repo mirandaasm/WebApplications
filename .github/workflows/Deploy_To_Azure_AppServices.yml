@@ -170,7 +170,7 @@ jobs:
         workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
         workflow_search: true
         workflow_conclusion: success
-        branch: ${{ (env.RELEASE_VERSION || github.ref_name || 'main') }}
+        branch: ${{ (env.RELEASE_VERSION || github.event.client_payload.github.ref_name || github.ref_name || 'main') }}
         name_is_regexp: false
         name: ${{ env.ARTIFACT_NAME }}
         path: ./artifacts
@@ -185,7 +185,7 @@ jobs:
 
     - name: '[DEBUG] List Artifact Files'
       run: |
-        ls -la ./artifacts'
+        ls -la ./artifacts
 
     # - name: Login via Azure CLI
     #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
