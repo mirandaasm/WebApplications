@@ -92,6 +92,7 @@ jobs:
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-manager-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-services-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-feeds-zipdeploy" -Recurse
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-templates-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-accounts-zipdeploy" -Recurse
 
     - name: Create Deployment Artifacts

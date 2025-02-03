@@ -6,6 +6,7 @@
 # - fastchannel-manager-zipdeploy.zip
 # - fastchannel-services-zipdeploy.zip
 # - fastchannel-feeds-zipdeploy.zip
+# - fastchannel-templates-zipdeploy.zip
 # - fastchannel-accounts-zipdeploy.zip
 
 # Por se tratar de um empacotamento "não versionado",
@@ -99,6 +100,7 @@ jobs:
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-manager-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-services-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-feeds-zipdeploy" -Recurse
+        Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-templates-zipdeploy" -Recurse
         Copy-Item -Path "fastchannel-webstore-zipdeploy" -Destination "fastchannel-accounts-zipdeploy" -Recurse
 
     - name: Create Deployment Artifacts
@@ -136,6 +138,14 @@ jobs:
       with:
         name: fastchannel-feeds-zipdeploy.zip
         path: artifacts/fastchannel-feeds-zipdeploy.zip
+        if-no-files-found: error
+        compression-level: 0
+
+    - name: Upload WebTemplates Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fastchannel-templates-zipdeploy.zip
+        path: artifacts/fastchannel-templates-zipdeploy.zip
         if-no-files-found: error
         compression-level: 0
 
