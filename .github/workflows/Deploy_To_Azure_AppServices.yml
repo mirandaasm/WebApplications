@@ -177,12 +177,12 @@ jobs:
         path: ./artifacts
 
     - name: Fetch Artifact From Release
-      uses: dsaltares/fetch-gh-release-asset@v1
+      uses: robinraju/release-downloader@v1
       if: ${{ env.DOWNLOAD_ARTIFACTS_FROM == 'Release' }}
       with:
-        version: ${{ format('tags/{0}', env.RELEASE_VERSION) }}
-        file: ${{ env.ARTIFACT_NAME }}
-        target: ./artifacts/${{ env.ARTIFACT_NAME }}
+        tag: ${{ env.RELEASE_VERSION }}
+        fileName: ${{ env.ARTIFACT_NAME }}
+        out-file-path: ./artifacts
 
     - name: '[DEBUG] List Artifact Files'
       run: |
