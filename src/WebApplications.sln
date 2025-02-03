@@ -20,8 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\Build_And_Create_Release.yml = ..\.github\workflows\Build_And_Create_Release.yml
 		..\.github\workflows\Build_On_Demand.yml = ..\.github\workflows\Build_On_Demand.yml
-		..\.github\workflows\Deploy_To_Azure AppServices.yml = ..\.github\workflows\Deploy_To_Azure AppServices.yml
 		..\.github\workflows\PR_Validation.yml = ..\.github\workflows\PR_Validation.yml
+		..\.github\workflows\Deploy_To_Azure_AppServices.yml = ..\.github\workflows\Deploy_To_Azure_AppServices.yml
 		..\.github\workflows\ᐳ_Environments.yml = ..\.github\workflows\ᐳ_Environments.yml
 	EndProjectSection
 EndProject

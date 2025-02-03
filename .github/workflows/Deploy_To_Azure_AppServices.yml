@@ -120,9 +120,9 @@ jobs:
             echo 'accounts' > ${matrix_file}
           fi
         )
-        matrix_results="'$(jq -R -s -c 'split("\n") | map(select(. != ""))' "${matrix_file}")'"
+        matrix_results="$(cat ${matrix_file} | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')"
         echo ${matrix_results}
-        echo "appservices='${matrix_results}'" >> $GITHUB_OUTPUT
+        echo "appservices=${matrix_results}" >> $GITHUB_OUTPUT
 
   appservice-deployment:
     needs: [environment-details, resolve-deployment-tasks]
