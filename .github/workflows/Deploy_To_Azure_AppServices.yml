@@ -254,10 +254,10 @@ jobs:
           )
 
           # Constrói a expressão jq para substituir os placeholders
-          jq_filter="map(if .value | test(\"\\\$\\(\") then .value |= ("
+          jq_filter="map(if .value | test(\"---\") then .value |= ("
           for key in "${!vars[@]}"; do
-              value="${vars[$key]}"
-              jq_filter+="gsub(\"\\\$\\(${key}\\)\"; \"$value\") | "
+            value="${vars[$key]}"
+            jq_filter+="gsub(\"---${key}---\"; \"$value\") | "
           done
 
           # Remove o último " | " e fecha os parênteses da expressão jq

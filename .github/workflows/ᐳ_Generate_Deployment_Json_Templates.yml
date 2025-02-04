@@ -21,7 +21,7 @@ jobs:
           [
             {
               "name": "AppContextName",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -36,42 +36,42 @@ jobs:
             },
             {
               "name": "AzureServicesAuthConnectionString",
-              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "value": "RunAs=App;AppId=---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
               "name": "Environment.ApplicationName",
-              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "value": "---AppContextName---_---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.Id",
-              "value": "\$(EnvironmentId)",
+              "value": "---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.Caching",
-              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "value": "{IsEnabled:---Vertico_Caching_IsEnabled---,DataContainerName:---Vertico_Caching_TableName---,TrackMemoryStatistics:---Vertico_Caching_TrackMemStats---}",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.Default",
-              "value": "\$(Vertico_Commerce_DbName)",
+              "value": "---Vertico_Commerce_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.DNE",
-              "value": "\$(Vertico_DNE_DbName)",
+              "value": "---Vertico_DNE_DbName---",
               "slotSetting": false
             },
             {
@@ -81,7 +81,7 @@ jobs:
             },
             {
               "name": "EventBus.OperationMode",
-              "value": "\$(EventBusMode)",
+              "value": "---EventBusMode---",
               "slotSetting": false
             },
             {
@@ -91,7 +91,7 @@ jobs:
             },
             {
               "name": "EventBus.AzureManagedIdentityClientId",
-              "value": "\$(UserManagedIdentityId)",
+              "value": "---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
@@ -133,7 +133,7 @@ jobs:
           [
             {
               "name": "AppContextName",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -148,77 +148,77 @@ jobs:
             },
             {
               "name": "auth0:CookieName",
-              "value": "\$(Auth0_CookieName)",
+              "value": "---Auth0_CookieName---",
               "slotSetting": false
             },
             {
               "name": "auth0:CookieDomain",
-              "value": "\$(Auth0_CookieDomain)",
+              "value": "---Auth0_CookieDomain---",
               "slotSetting": false
             },
             {
               "name": "auth0:Domain",
-              "value": "\$(Auth0_Domain)",
+              "value": "---Auth0_Domain---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientId",
-              "value": "\$(Auth0_ClientId)",
+              "value": "---Auth0_ClientId---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientSecret",
-              "value": "\$(Auth0_ClientSecret)",
+              "value": "---Auth0_ClientSecret---",
               "slotSetting": false
             },
             {
               "name": "auth0:CallbackPath",
-              "value": "/\$(AccountId)/portal/account/signin/callback",
+              "value": "/---AccountId---/portal/account/signin/callback",
               "slotSetting": false
             },
             {
               "name": "auth0:RedirectUri",
-              "value": "https://commerce.fastchannel.com/\$(AccountId)/portal/account/signin/callback",
+              "value": "https://commerce.fastchannel.com/---AccountId---/portal/account/signin/callback",
               "slotSetting": false
             },
             {
               "name": "AzureServicesAuthConnectionString",
-              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "value": "RunAs=App;AppId=---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
               "name": "Environment.ApplicationName",
-              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "value": "---AppContextName---_---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.Id",
-              "value": "\$(EnvironmentId)",
+              "value": "---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.Caching",
-              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "value": "{IsEnabled:---Vertico_Caching_IsEnabled---,DataContainerName:---Vertico_Caching_TableName---,TrackMemoryStatistics:---Vertico_Caching_TrackMemStats---}",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.Default",
-              "value": "\$(Vertico_Commerce_DbName)",
+              "value": "---Vertico_Commerce_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.DNE",
-              "value": "\$(Vertico_DNE_DbName)",
+              "value": "---Vertico_DNE_DbName---",
               "slotSetting": false
             },
             {
@@ -228,7 +228,7 @@ jobs:
             },
             {
               "name": "EventBus.OperationMode",
-              "value": "\$(EventBusMode)",
+              "value": "---EventBusMode---",
               "slotSetting": false
             },
             {
@@ -238,7 +238,7 @@ jobs:
             },
             {
               "name": "EventBus.AzureManagedIdentityClientId",
-              "value": "\$(UserManagedIdentityId)",
+              "value": "---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
@@ -290,7 +290,7 @@ jobs:
           [
             {
               "name": "AppContextName",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -305,57 +305,57 @@ jobs:
             },
             {
               "name": "auth0:Domain",
-              "value": "\$(Auth0_Domain)",
+              "value": "---Auth0_Domain---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientId",
-              "value": "\$(Auth0_ClientId)",
+              "value": "---Auth0_ClientId---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientSecret",
-              "value": "\$(Auth0_ClientSecret)",
+              "value": "---Auth0_ClientSecret---",
               "slotSetting": false
             },
             {
               "name": "AzureServicesAuthConnectionString",
-              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "value": "RunAs=App;AppId=---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
               "name": "Environment.ApplicationName",
-              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "value": "---AppContextName---_---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.Id",
-              "value": "\$(EnvironmentId)",
+              "value": "---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.Caching",
-              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "value": "{IsEnabled:---Vertico_Caching_IsEnabled---,DataContainerName:---Vertico_Caching_TableName---,TrackMemoryStatistics:---Vertico_Caching_TrackMemStats---}",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.Default",
-              "value": "\$(Vertico_Commerce_DbName)",
+              "value": "---Vertico_Commerce_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.DNE",
-              "value": "\$(Vertico_DNE_DbName)",
+              "value": "---Vertico_DNE_DbName---",
               "slotSetting": false
             },
             {
@@ -365,7 +365,7 @@ jobs:
             },
             {
               "name": "EventBus.OperationMode",
-              "value": "\$(EventBusMode)",
+              "value": "---EventBusMode---",
               "slotSetting": false
             },
             {
@@ -375,7 +375,7 @@ jobs:
             },
             {
               "name": "EventBus.AzureManagedIdentityClientId",
-              "value": "\$(UserManagedIdentityId)",
+              "value": "---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
@@ -417,7 +417,7 @@ jobs:
           [
             {
               "name": "AppContextName",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -432,42 +432,42 @@ jobs:
             },
             {
               "name": "AzureServicesAuthConnectionString",
-              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "value": "RunAs=App;AppId=---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
               "name": "Environment.ApplicationName",
-              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "value": "---AppContextName---_---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.Id",
-              "value": "\$(EnvironmentId)",
+              "value": "---EnvironmentId---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.Caching",
-              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "value": "{IsEnabled:---Vertico_Caching_IsEnabled---,DataContainerName:---Vertico_Caching_TableName---,TrackMemoryStatistics:---Vertico_Caching_TrackMemStats---}",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.Default",
-              "value": "\$(Vertico_Commerce_DbName)",
+              "value": "---Vertico_Commerce_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.SqlServer.DatabaseNames.DNE",
-              "value": "\$(Vertico_DNE_DbName)",
+              "value": "---Vertico_DNE_DbName---",
               "slotSetting": false
             },
             {
@@ -477,7 +477,7 @@ jobs:
             },
             {
               "name": "EventBus.OperationMode",
-              "value": "\$(EventBusMode)",
+              "value": "---EventBusMode---",
               "slotSetting": false
             },
             {
@@ -487,7 +487,7 @@ jobs:
             },
             {
               "name": "EventBus.AzureManagedIdentityClientId",
-              "value": "\$(UserManagedIdentityId)",
+              "value": "---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
@@ -529,7 +529,7 @@ jobs:
           [
             {
               "name": "AppContextName",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -544,22 +544,22 @@ jobs:
             },
             {
               "name": "auth0:CookieName",
-              "value": "\$(Auth0_CookieName)",
+              "value": "---Auth0_CookieName---",
               "slotSetting": false
             },
             {
               "name": "auth0:CookieDomain",
-              "value": "\$(Auth0_CookieDomain)",
+              "value": "---Auth0_CookieDomain---",
               "slotSetting": false
             },
             {
               "name": "auth0:Domain",
-              "value": "\$(Auth0_Domain)",
+              "value": "---Auth0_Domain---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientId",
-              "value": "\$(Auth0_ClientId)",
+              "value": "---Auth0_ClientId---",
               "slotSetting": false
             },
             {
@@ -579,7 +579,7 @@ jobs:
             },
             {
               "name": "AzureServicesAuthConnectionString",
-              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "value": "RunAs=App;AppId=---UserManagedIdentityId---",
               "slotSetting": false
             },
             {
@@ -589,12 +589,12 @@ jobs:
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
@@ -609,7 +609,7 @@ jobs:
             },
             {
               "name": "Environment.VirtualPathProviders.CoreVirtualPathProviderKey",
-              "value": "\$(AppContextName)",
+              "value": "---AppContextName---",
               "slotSetting": false
             },
             {
@@ -676,47 +676,47 @@ jobs:
             },
             {
               "name": "auth0:CookieName",
-              "value": "\$(Auth0_CookieName)",
+              "value": "---Auth0_CookieName---",
               "slotSetting": false
             },
             {
               "name": "auth0:CookieDomain",
-              "value": "\$(Auth0_CookieDomain)",
+              "value": "---Auth0_CookieDomain---",
               "slotSetting": false
             },
             {
               "name": "auth0:Domain",
-              "value": "\$(Auth0_Domain)",
+              "value": "---Auth0_Domain---",
               "slotSetting": false
             },
             {
               "name": "auth0:ClientId",
-              "value": "\$(Auth0_ClientId)",
+              "value": "---Auth0_ClientId---",
               "slotSetting": false
             },
             {
               "name": "auth0:LoginPath",
-              "value": "\$(Auth0_LoginPath)",
+              "value": "---Auth0_LoginPath---",
               "slotSetting": false
             },
             {
               "name": "auth0:CallbackPath",
-              "value": "\$(Auth0_CallbackPath)",
+              "value": "---Auth0_CallbackPath---",
               "slotSetting": false
             },
             {
               "name": "auth0:RedirectUri",
-              "value": "\$(Auth0_RedirectUri)",
+              "value": "---Auth0_RedirectUri---",
               "slotSetting": false
             },
             {
               "name": "auth0:PostLoginRedirectUri",
-              "value": "\$(Auth0_PostLoginRedirectUri)",
+              "value": "---Auth0_PostLoginRedirectUri---",
               "slotSetting": false
             },
             {
               "name": "auth0:PostLogoutRedirectUri",
-              "value": "\$(Auth0_PostLogoutRedirectUri)",
+              "value": "---Auth0_PostLogoutRedirectUri---",
               "slotSetting": false
             },
             {
@@ -731,12 +731,12 @@ jobs:
             },
             {
               "name": "Environment.MongoDb.EntitiesDatabaseName",
-              "value": "\$(Vertico_BigData_DbName)",
+              "value": "---Vertico_BigData_DbName---",
               "slotSetting": false
             },
             {
               "name": "Environment.MongoDb.LoggingDatabaseName",
-              "value": "\$(Vertico_Logging_DbName)",
+              "value": "---Vertico_Logging_DbName---",
               "slotSetting": false
             },
             {
