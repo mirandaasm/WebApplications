@@ -1,0 +1,816 @@
+﻿# This is a reusable workflow, used to define constant values related to the available environments
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: ᐳ Generate Deployment JSON Templates
+
+on:
+  workflow_call:
+
+jobs:
+  generate-webstore-appsettings-json-template:
+    name: Generate WebStore AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-webstore
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "false",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureServicesAuthConnectionString",
+              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Id",
+              "value": "\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Caching",
+              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.Default",
+              "value": "\$(Vertico_Commerce_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.DNE",
+              "value": "\$(Vertico_DNE_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.Enabled",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.OperationMode",
+              "value": "\$(EventBusMode)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureStorageAccountName",
+              "value": "fastchannelapps",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureManagedIdentityClientId",
+              "value": "\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.SubscriptionsTableName",
+              "value": "CommerceSubscriptions",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-manager-appsettings-json-template:
+    name: Generate WebPortal AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-manager
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieName",
+              "value": "\$(Auth0_CookieName)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieDomain",
+              "value": "\$(Auth0_CookieDomain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:Domain",
+              "value": "\$(Auth0_Domain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientId",
+              "value": "\$(Auth0_ClientId)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientSecret",
+              "value": "\$(Auth0_ClientSecret)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CallbackPath",
+              "value": "/\$(AccountId)/portal/account/signin/callback",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:RedirectUri",
+              "value": "https://commerce.fastchannel.com/\$(AccountId)/portal/account/signin/callback",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureServicesAuthConnectionString",
+              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Id",
+              "value": "\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Caching",
+              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.Default",
+              "value": "\$(Vertico_Commerce_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.DNE",
+              "value": "\$(Vertico_DNE_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.Enabled",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.OperationMode",
+              "value": "\$(EventBusMode)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureStorageAccountName",
+              "value": "fastchannelapps",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureManagedIdentityClientId",
+              "value": "\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.SubscriptionsTableName",
+              "value": "CommerceSubscriptions",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_DecryptionKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-decryptionkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_ValidationKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-validationkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-services-appsettings-json-template:
+    name: Generate WebServices AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-services
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:Domain",
+              "value": "\$(Auth0_Domain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientId",
+              "value": "\$(Auth0_ClientId)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientSecret",
+              "value": "\$(Auth0_ClientSecret)",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureServicesAuthConnectionString",
+              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Id",
+              "value": "\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Caching",
+              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.Default",
+              "value": "\$(Vertico_Commerce_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.DNE",
+              "value": "\$(Vertico_DNE_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.Enabled",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.OperationMode",
+              "value": "\$(EventBusMode)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureStorageAccountName",
+              "value": "fastchannelapps",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureManagedIdentityClientId",
+              "value": "\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.SubscriptionsTableName",
+              "value": "CommerceSubscriptions",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-feeds-appsettings-json-template:
+    name: Generate WebFeeds AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-feeds
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureServicesAuthConnectionString",
+              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "\$(AppContextName)_\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Id",
+              "value": "\$(EnvironmentId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Caching",
+              "value": "{IsEnabled:\$(Vertico_Caching_IsEnabled),DataContainerName:\$(Vertico_Caching_TableName),TrackMemoryStatistics:\$(Vertico_Caching_TrackMemStats)}",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.Default",
+              "value": "\$(Vertico_Commerce_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.SqlServer.DatabaseNames.DNE",
+              "value": "\$(Vertico_DNE_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.Enabled",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.OperationMode",
+              "value": "\$(EventBusMode)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureStorageAccountName",
+              "value": "fastchannelapps",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.AzureManagedIdentityClientId",
+              "value": "\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.SubscriptionsTableName",
+              "value": "CommerceSubscriptions",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-templates-appsettings-json-template:
+    name: Generate WebTemplates AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-templates
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "false",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieName",
+              "value": "\$(Auth0_CookieName)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieDomain",
+              "value": "\$(Auth0_CookieDomain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:Domain",
+              "value": "\$(Auth0_Domain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientId",
+              "value": "\$(Auth0_ClientId)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:LoginPath",
+              "value": "/Unauthorized.aspx",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CallbackPath",
+              "value": "/callback",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:RedirectUri",
+              "value": "https://templates.commerce.fastchannel.com/callback",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureServicesAuthConnectionString",
+              "value": "RunAs=App;AppId=\$(UserManagedIdentityId)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "WebTemplating",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Templating.LogCutOffDays",
+              "value": "30",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Templating.LogFullPath",
+              "value": "c:\\\\home\\\\site\\\\wwwroot\\\\log\\\\",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.VirtualPathProviders.CoreVirtualPathProviderKey",
+              "value": "\$(AppContextName)",
+              "slotSetting": false
+            },
+            {
+              "name": "EventBus.Enabled",
+              "value": "false",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_DecryptionKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-decryptionkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_ValidationKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-validationkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-accounts-appsettings-json-template:
+    name: Generate WebAccounts AppSettings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-appsettings-accounts
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "AppContextName",
+              "value": "FastAccounts",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-application-insights)",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_IS_DISABLED",
+              "value": "false",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieName",
+              "value": "\$(Auth0_CookieName)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CookieDomain",
+              "value": "\$(Auth0_CookieDomain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:Domain",
+              "value": "\$(Auth0_Domain)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:ClientId",
+              "value": "\$(Auth0_ClientId)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:LoginPath",
+              "value": "\$(Auth0_LoginPath)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:CallbackPath",
+              "value": "\$(Auth0_CallbackPath)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:RedirectUri",
+              "value": "\$(Auth0_RedirectUri)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:PostLoginRedirectUri",
+              "value": "\$(Auth0_PostLoginRedirectUri)",
+              "slotSetting": false
+            },
+            {
+              "name": "auth0:PostLogoutRedirectUri",
+              "value": "\$(Auth0_PostLogoutRedirectUri)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.ApplicationName",
+              "value": "FastAccounts",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.Caching",
+              "value": "{IsEnabled:false,DataContainerName:DemosB2BDev,TrackMemoryStatistics:false}",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.EntitiesDatabaseName",
+              "value": "\$(Vertico_BigData_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "Environment.MongoDb.LoggingDatabaseName",
+              "value": "\$(Vertico_Logging_DbName)",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_DecryptionKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-decryptionkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "MACHINEKEY_ValidationKey",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-manager-validationkey)",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_DNS_SERVER",
+              "value": "168.63.129.16",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "E. South America Standard Time",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error
+
+  generate-connection-strings-json-template:
+    name: Generate Connection Strings JSON Template
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: template-connection-strings
+
+    steps:
+      - name: Generate JSON Template
+        run: |
+          mkdir artifacts && touch artifacts/${{ env.ARTIFACT_NAME }}.json
+          cat <<EOF > artifacts/${{ env.ARTIFACT_NAME }}.json
+          [
+            {
+              "name": "Vertico_BigData",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-atlasdb-nosql)",
+              "type": "Custom",
+              "slotSetting": false
+            },
+            {
+              "name": "Vertico_Caching",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-sql-caching)",
+              "type": "SQLServer",
+              "slotSetting": false
+            },
+            {
+              "name": "Vertico_Commerce",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-sql-relational)",
+              "type": "SQLServer",
+              "slotSetting": false
+            },
+            {
+              "name": "Vertico_Logs",
+              "value": "@Microsoft.KeyVault(VaultName=fastchannel-keyvault;SecretName=fastchannel-atlasdb-nosql)",
+              "type": "Custom",
+              "slotSetting": false
+            }
+          ]
+          EOF
+      
+      - name: Upload JSON Template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-json
+          path: artifacts/${{ env.ARTIFACT_NAME }}.json
+          if-no-files-found: error

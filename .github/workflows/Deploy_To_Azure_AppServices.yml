@@ -142,8 +142,12 @@ jobs:
         echo ${matrix_results}
         echo "appservices=${matrix_results}" >> $GITHUB_OUTPUT
 
+  generate-json-templates:
+    uses: ./.github/workflows/ᐳ_Generate_Deployment_Json_Templates.yml
+    name: Generate JSON Templates
+
   appservice-deployment:
-    needs: [environment-details, resolve-deployment-tasks]
+    needs: [environment-details, resolve-deployment-tasks, generate-json-templates]
     name: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', (matrix.appservice != 'accounts' && matrix.appservice != 'templates') && '-' || '', (matrix.appservice != 'accounts' && matrix.appservice != 'templates') && needs.environment-details.outputs.appservice-suffix || '')) }}
     runs-on: ${{ matrix.os }}
     if: ${{ needs.resolve-deployment-tasks.outputs.skip-all == 'false' }}
@@ -162,6 +166,10 @@ jobs:
       RELEASE_VERSION: ${{ needs.resolve-deployment-tasks.outputs.release-version }}
       DOWNLOAD_ARTIFACTS_FROM: ${{ needs.resolve-deployment-tasks.outputs.download-artifacts-from }}
       APPSERVICE_NAME: ${{ format('fastchannel-{0}{1}', matrix.appservice, format('{0}{1}', (matrix.appservice != 'accounts' && matrix.appservice != 'templates') && '-' || '', (matrix.appservice != 'accounts' && matrix.appservice != 'templates') && needs.environment-details.outputs.appservice-suffix || '')) }}
+      APPSETTINGS_TEMPLATE_NAME: ${{ format('template-appsettings-{0}', matrix.appservice) }}
+      CONNSTRINGS_TEMPLATE_NAME: ${{ format('{0}', matrix.appservice != 'accounts' && 'template-connection-strings' || '') }}
+      APP_CONTEXT_NAME: ${{ format('{0}', matrix.appservice == 'webstore' && 'WebStore' || format('{0}', matrix.appservice == 'manager' && 'WebManager' || format('{0}', matrix.appservice == 'services' && 'Integration' || format('{0}', matrix.appservice == 'feeds' && 'WebFeeds' || format('{0}', matrix.appservice == 'templates' && 'CoreUI' || 'FastAccounts'))))) }}
+      EVENT_BUS_MODE: ${{ format('{0}', matrix.appservice == 'services' && 'PublisherSubscriber' || 'PublisherOnly') }}
 
     steps:
     - name: '[DEBUG] Deploying into Azure AppService'
@@ -170,13 +178,17 @@ jobs:
         echo "RELEASE_VERSION=${{ env.RELEASE_VERSION }}"
         echo "DOWNLOAD_ARTIFACTS_FROM=${{ env.DOWNLOAD_ARTIFACTS_FROM }}"
         echo "APPSERVICE_NAME=${{ env.APPSERVICE_NAME }}"
+        echo "APPSETTINGS_TEMPLATE_NAME=${{ env.APPSETTINGS_TEMPLATE_NAME }}"
+        echo "CONNSTRINGS_TEMPLATE_NAME=${{ env.CONNSTRINGS_TEMPLATE_NAME }}"
+        echo "APP_CONTEXT_NAME=${{ env.APP_CONTEXT_NAME }}"
+        echo "EVENT_BUS_MODE=${{ env.EVENT_BUS_MODE }}"
         echo "---------------------------------------------"
 
     - name: Fetch Artifact From Build
       uses: dawidd6/action-download-artifact@v8
       if: ${{ env.DOWNLOAD_ARTIFACTS_FROM != 'Release' && endsWith(env.DOWNLOAD_ARTIFACTS_FROM, '.yml') }}
       with:
-        github_token: ${{ secrets.FASTCHANNEL_MIRANDAASM_PAT }}
+        github_token: ${{ secrets.FASTCHANNEL_GITHUB_MIRANDAASM_PAT }}
         workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
         workflow_search: true
         workflow_conclusion: success
@@ -197,15 +209,88 @@ jobs:
       run: |
         ls -la ./artifacts
 
+    - name: Download AppSettings JSON Templates
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.APPSETTINGS_TEMPLATE_NAME }}-json
+        path: ./artifacts/json-templates
+
+    - name: Download Connection Strings JSON Template
+      uses: actions/download-artifact@v4
+      if: ${{ env.CONNSTRINGS_TEMPLATE_NAME != '' }}
+      with:
+        name: ${{ env.CONNSTRINGS_TEMPLATE_NAME }}-json
+        path: ./artifacts/json-templates
+
+    - name: Generate Application Settings
+      run: |
+        (
+          appsettings_template="artifacts/json-templates/${{ env.APPSETTINGS_TEMPLATE_NAME }}.json"
+
+          # Define as variáveis de substituição
+          declare -A vars=(
+            ["UserManagedIdentityId"]="${{ vars.FASTCHANNEL_AZURE_USER_MANAGED_IDENTITY_ID }}"
+            ["Auth0_CookieName"]="${{ vars.FASTCHANNEL_AUTH0_COOKIE_NAME }}"
+            ["Auth0_CookieDomain"]="${{ vars.FASTCHANNEL_AUTH0_COOKIE_DOMAIN }}"
+            ["Auth0_Domain"]="${{ vars.FASTCHANNEL_AUTH0_DOMAIN }}"
+            ["Auth0_ClientId"]="${{ vars.FASTCHANNEL_AUTH0_CLIENT_ID }}"
+            ["Auth0_ClientSecret"]="${{ vars.FASTCHANNEL_AUTH0_CLIENT_SECRET }}"
+            ["Auth0_LoginPath"]="${{ vars.FASTCHANNEL_AUTH0_LOGIN_PATH }}"
+            ["Auth0_CallbackPath"]="${{ vars.FASTCHANNEL_AUTH0_CALLBACK_PATH }}"
+            ["Auth0_RedirectUri"]="${{ vars.FASTCHANNEL_AUTH0_REDIRECT_URI }}"
+            ["Auth0_PostLoginRedirectUri"]="${{ vars.FASTCHANNEL_AUTH0_POST_LOGIN_REDIRECT_URI }}"
+            ["Auth0_PostLogoutRedirectUri"]="${{ vars.FASTCHANNEL_AUTH0_POST_LOGOUT_REDIRECT_URI }}"
+            ["AccountId"]="${{ vars.FASTCHANNEL_ENVS_ACCOUNT_ID }}"
+            ["EnvironmentId"]="${{ vars.FASTCHANNEL_ENVS_ENVIRONMENT_ID }}"
+            ["Vertico_BigData_DbName"]="${{ vars.FASTCHANNEL_ENVS_DBNAMES_BIGDATA }}"
+            ["Vertico_Logging_DbName"]="${{ vars.FASTCHANNEL_ENVS_DBNAMES_LOGGING }}"
+            ["Vertico_Commerce_DbName"]="${{ vars.FASTCHANNEL_ENVS_DBNAMES_COMMERCE }}"
+            ["Vertico_DNE_DbName"]="${{ vars.FASTCHANNEL_ENVS_DBNAMES_DNE }}"
+            ["Vertico_Caching_IsEnabled"]="${{ vars.FASTCHANNEL_ENVS_CACHING_IS_ENABLED }}"
+            ["Vertico_Caching_TableName"]="${{ vars.FASTCHANNEL_ENVS_CACHING_TABLE_NAME }}"
+            ["Vertico_Caching_TrackMemStats"]="${{ vars.FASTCHANNEL_ENVS_CACHING_TRACK_MEM_STATS }}"
+            ["AppContextName"]="${{ env.APP_CONTEXT_NAME }}"
+            ["EventBusMode"]="${{ env.EVENT_BUS_MODE }}"
+          )
+
+          # Constrói a expressão jq para substituir os placeholders
+          jq_filter="map(if .value | test(\"\\\$\\(\") then .value |= ("
+          for key in "${!vars[@]}"; do
+              value="${vars[$key]}"
+              jq_filter+="gsub(\"\\\$\\(${key}\\)\"; \"$value\") | "
+          done
+
+          # Remove o último " | " e fecha os parênteses da expressão jq
+          jq_filter="${jq_filter::-3})) else . end)"
+
+          # Aplica a substituição no JSON
+          jq "$jq_filter" $appsettings_template > ${{ runner.temp }}/appsettings.json
+
+          # Exibe o resultado formatado
+          cat ${{ runner.temp }}/appsettings.json | jq .
+        )
+
+    - name: '[DEBUG] Show Connection Strings JSON'
+      if: ${{ env.CONNSTRINGS_TEMPLATE_NAME != '' }}
+      run: cat ./artifacts/json-templates/${{ env.CONNSTRINGS_TEMPLATE_NAME }}.json | jq .
+
     # - name: Login via Azure CLI
-    #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
     #   uses: azure/login@v2
     #   with:
-    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+    #     creds: ${{ secrets.FASTCHANNEL_AZURE_DEPLOYMENT_CREDENTIALS }}
 
-    # - name: Deploy To Azure App Service
-    #   if: ${{ env.DEPLOYMENT_SKIPPED != 'true' }}
+    # - name: Deploy To Azure AppService
     #   uses: azure/webapps-deploy@v3
     #   with:
     #     app-name: ${{ env.APPSERVICE_NAME }}
     #     package: ${{ env.ARTIFACT_NAME }}
+
+    # - name: Update Azure AppService Settings
+    #   uses: azure/appservice-settings@v1
+    #   with:
+    #     app-name: ${{ env.APPSERVICE_NAME }}
+    #     mask-inputs: false
+    #     app-settings-json: |- 
+    #       {
+    #         "WEBSITE_RUN_FROM_PACKAGE": "1"
+    #       }
