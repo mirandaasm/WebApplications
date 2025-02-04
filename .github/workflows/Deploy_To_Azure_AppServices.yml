@@ -254,14 +254,18 @@ jobs:
           )
 
           # Constrói a expressão jq para substituir os placeholders
-          jq_filter="map(if .value | test(\"---\") then .value |= ("
+          first=true
+          jq_filter='map(if .value | test("---") then .value |= ('
           for key in "${!vars[@]}"; do
             value="${vars[$key]}"
-            jq_filter+="gsub(\"---${key}---\"; \"$value\") | "
+            if [ "$first" = true ]; then
+              jq_filter+="gsub(\"---${key}---\"; \"$value\")"
+              first=false
+            else
+              jq_filter+=" | gsub(\"---${key}---\"; \"$value\")"
+            fi
           done
-
-          # Remove o último " | " e fecha os parênteses da expressão jq
-          jq_filter="${jq_filter::-3})) else . end)"
+          jq_filter+=") else . end)"
 
           # Aplica a substituição no JSON
           jq "$jq_filter" $appsettings_template > ${{ runner.temp }}/appsettings.json
