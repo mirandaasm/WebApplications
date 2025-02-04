@@ -227,7 +227,7 @@ jobs:
         (
           appsettings_template="artifacts/json-templates/${{ env.APPSETTINGS_TEMPLATE_NAME }}.json"
 
-          # Define as variáveis de substituição
+          # Define placeholder substituion variables
           declare -A vars=(
             ["UserManagedIdentityId"]="${{ vars.FASTCHANNEL_AZURE_USER_MANAGED_IDENTITY_ID }}"
             ["Auth0_CookieName"]="${{ vars.FASTCHANNEL_AUTH0_COOKIE_NAME }}"
@@ -253,7 +253,7 @@ jobs:
             ["EventBusMode"]="${{ env.EVENT_BUS_MODE }}"
           )
 
-          # Constrói a expressão jq para substituir os placeholders
+          # Build jq filter expression, used for placeholder substituion
           first=true
           jq_filter='map(if .value | test("---") then .value |= ('
           for key in "${!vars[@]}"; do
@@ -267,10 +267,10 @@ jobs:
           done
           jq_filter+=") else . end)"
 
-          # Aplica a substituição no JSON
+          # Applies placeholder substituion to the source template, and outputs the final JSON into a temporary file
           jq "$jq_filter" $appsettings_template > ${{ runner.temp }}/appsettings.json
 
-          # Exibe o resultado formatado
+          # Shows the final step results (properly formatted)
           cat ${{ runner.temp }}/appsettings.json | jq .
         )
 
@@ -278,23 +278,32 @@ jobs:
       if: ${{ env.CONNSTRINGS_TEMPLATE_NAME != '' }}
       run: cat ./artifacts/json-templates/${{ env.CONNSTRINGS_TEMPLATE_NAME }}.json | jq .
 
-    # - name: Login via Azure CLI
-    #   uses: azure/login@v2
-    #   with:
-    #     creds: ${{ secrets.FASTCHANNEL_AZURE_DEPLOYMENT_CREDENTIALS }}
+    - name: Load AppSettings JSON into an output Variable
+      id: load-appsettings-content
+      env:
+        MY_FILE_PATH: ${{ runner.temp }}/appsettings.json
+      run: echo "json=$(tr -d '\n' < ${{ env.MY_FILE_PATH }})" >> $GITHUB_OUTPUT
 
-    # - name: Deploy To Azure AppService
-    #   uses: azure/webapps-deploy@v3
-    #   with:
-    #     app-name: ${{ env.APPSERVICE_NAME }}
-    #     package: ${{ env.ARTIFACT_NAME }}
+    - name: Load Connection Strings JSON into an output Variable
+      id: load-connstrings-content
+      if: ${{ env.CONNSTRINGS_TEMPLATE_NAME != '' }}
+      run: echo "json=$(tr -d '\n' < artifacts/json-templates/${{ env.CONNSTRINGS_TEMPLATE_NAME }}.json)" >> $GITHUB_OUTPUT
 
-    # - name: Update Azure AppService Settings
-    #   uses: azure/appservice-settings@v1
-    #   with:
-    #     app-name: ${{ env.APPSERVICE_NAME }}
-    #     mask-inputs: false
-    #     app-settings-json: |- 
-    #       {
-    #         "WEBSITE_RUN_FROM_PACKAGE": "1"
-    #       }
+    - name: Login via Azure CLI
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.FASTCHANNEL_AZURE_DEPLOYMENT_CREDENTIALS }}
+
+    - name: Deploy To Azure AppService
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.APPSERVICE_NAME }}
+        package: ${{ env.ARTIFACT_NAME }}
+
+    - name: Update Azure AppService Settings
+      uses: azure/appservice-settings@v1
+      with:
+        app-name: ${{ env.APPSERVICE_NAME }}
+        mask-inputs: false
+        app-settings-json: ${{ steps.load-appsettings-content.outputs.json }}
+        connection-strings-json: ${{ env.CONNSTRINGS_TEMPLATE_NAME != '' && steps.load-connstrings-content.outputs.json || '' }}
