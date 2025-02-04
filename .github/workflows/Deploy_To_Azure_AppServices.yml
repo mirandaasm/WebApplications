@@ -298,7 +298,7 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.APPSERVICE_NAME }}
-        package: ${{ env.ARTIFACT_NAME }}
+        package: artifacts/${{ env.ARTIFACT_NAME }}
 
     - name: Update Azure AppService Settings
       uses: azure/appservice-settings@v1
