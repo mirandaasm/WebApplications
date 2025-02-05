@@ -131,8 +131,13 @@ jobs:
               "ref_type": "${{ github.ref_type }}",
               "sha": "${{ github.sha }}"
             },
-            "environment": "B2B Dev",
-            "download_artifacts_from": "Release",
-            "release_version": "${{ env.TAG_NAME }}",
-            "run_name": "${{ env.TAG_NAME }}"
+            "deployment_flags": {
+              "deploy_environment": true,
+              "deploy_templates": true,
+              "deploy_accounts": true,
+              "environment": "B2B Dev",
+              "download_artifacts_from": "Release",
+              "release_version": "${{ env.TAG_NAME }}",
+              "run_name": "${{ env.TAG_NAME }}"
+            }
           }

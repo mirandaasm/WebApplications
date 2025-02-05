@@ -5,8 +5,8 @@ name: Deploy To Azure AppServices
 
 run-name: >-
   ${{ format('Deploying {0} into Azure AppServices{1} {2}',
-  ((github.event_name == 'repository_dispatch' && github.event.client_payload.run_name) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '[Untagged Build]'),
-  ':', github.event.client_payload.environment || inputs.environment) }}
+  ((github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.run_name) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '[Untagged Build]'),
+  ':', github.event.client_payload.deployment_flags.environment || inputs.environment) }}
 
 on:
   repository_dispatch:
@@ -57,21 +57,21 @@ jobs:
     uses: ./.github/workflows/ᐳ_Environments.yml
     name: Environment Details
     with:
-      environment-name: ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+      environment-name: ${{ github.event.inputs.environment || github.event.client_payload.deployment_flags.environment }}
 
   resolve-deployment-tasks:
     runs-on: ubuntu-latest
     name: Resolve Deployment Tasks
     env:
-      WEBSTORE: ${{ (inputs.deploy-to-webstore || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
-      MANAGER: ${{ (inputs.deploy-to-webportal || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
-      SERVICES: ${{ (inputs.deploy-to-webservices || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
-      FEEDS: ${{ (inputs.deploy-to-webfeeds || github.event_name == 'repository_dispatch') && 'true' || 'false' }}
-      TEMPLATES: ${{ (inputs.deploy-to-webtemplates && 'true') || 'false' }}
-      ACCOUNTS: ${{ (inputs.deploy-to-webaccounts && 'true') || 'false' }}
+      WEBSTORE: ${{ (inputs.deploy-to-webstore || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_environment)) && 'true' || 'false' }}
+      MANAGER: ${{ (inputs.deploy-to-webportal || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_environment)) && 'true' || 'false' }}
+      SERVICES: ${{ (inputs.deploy-to-webservices || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_environment)) && 'true' || 'false' }}
+      FEEDS: ${{ (inputs.deploy-to-webfeeds || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_environment)) && 'true' || 'false' }}
+      TEMPLATES: ${{ (inputs.deploy-to-webtemplates || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_templates)) && 'true' || 'false' }}
+      ACCOUNTS: ${{ (inputs.deploy-to-webaccounts || (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.deploy_accounts)) && 'true' || 'false' }}
       SKIP_ALL: ${{ (github.event_name == 'workflow_dispatch' && !inputs.deploy-to-webstore && !inputs.deploy-to-webportal && !inputs.deploy-to-webservices && !inputs.deploy-to-webfeeds && !inputs.deploy-to-webaccounts && 'true') || 'false' }}
-      RELEASE_VERSION: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.release_version) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}
-      DOWNLOAD_ARTIFACTS_FROM: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.download_artifacts_from || inputs.artifacts-source }}
+      RELEASE_VERSION: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.release_version) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}
+      DOWNLOAD_ARTIFACTS_FROM: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.deployment_flags.download_artifacts_from || inputs.artifacts-source }}
     outputs:
       webstore: ${{ steps.set-deployment-flags.outputs.webstore }}
       manager: ${{ steps.set-deployment-flags.outputs.manager }}
@@ -188,7 +188,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v8
       if: ${{ env.DOWNLOAD_ARTIFACTS_FROM != 'Release' && endsWith(env.DOWNLOAD_ARTIFACTS_FROM, '.yml') }}
       with:
-        github_token: ${{ secrets.FASTCHANNEL_GITHUB_MIRANDAASM_PAT }}
+        github_token: ${{ secrets.FASTCHANNEL_GITHUB_MIRANDAASM_ACTIONS_PAT }}
         workflow: ${{ env.DOWNLOAD_ARTIFACTS_FROM }}
         workflow_search: true
         workflow_conclusion: success
